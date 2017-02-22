@@ -34,6 +34,7 @@ echo EndGenotypes
 
 ##To delete genotypes with minDP 8 and minGQ 20
 ##To run vcftools first: export PATH=${PATH}:/home/pinedasans/programs/vcftools_0.1.13/bin/
+##export PERL5LIB=$PERL5LIB:/home/pinedasans/programs/vcftools_0.1.13/lib/perl5/site_perl/
 #When I applied this filer the variant recalibrator is not working.
 #vcftools --minDP 8 --minGQ 20 --vcf /home/pinedasans/ExomeSeq/VCF/joint.output.vcf --recode --out /home/pinedasans/ExomeSeq/VCF/joint.output.DP.GQ.filtered.vcf
 
@@ -72,7 +73,7 @@ java -jar GenomeAnalysisTK.jar -T SelectVariants -R /home/pinedasans/ExomeSeq/BA
 java -jar GenomeAnalysisTK.jar -T SelectVariants -R /home/pinedasans/ExomeSeq/BAM/GRCh37.fa -V /home/pinedasans/ExomeSeq/VCF/joint.output.snp.indel.recal.filtered.vcf -o /home/pinedasans/ExomeSeq/VCF/joint.output.snp.indel.recal.filtered.biallelic.vcf -restrictAllelesTo BIALLELIC
 
 ##Exclude Indels
-#java -jar GenomeAnalysisTK.jar -T SelectVariants -R /home/pinedasans/ExomeSeq/BAM/GRCh37.fa -V /home/pinedasans/ExomeSeq/VCF/gVCF/joint.output.snp.indel.recal.filtered.biallelic.vcf -o /home/pinedasans/ExomeSeq/VCF/gVCF/joint.output.snp.indel.recal.filtered.biallelic.SNPs.vcf --selectTypeToExclude INDEL
+java -jar GenomeAnalysisTK.jar -T SelectVariants -R /home/pinedasans/ExomeSeq/BAM/GRCh37.fa -V /home/pinedasans/ExomeSeq/VCF/joint.output.snp.indel.recal.filtered.biallelic.vcf -o /home/pinedasans/ExomeSeq/VCF/joint.output.snp.indel.recal.filtered.biallelic.SNPs.vcf --selectTypeToExclude INDEL
 
 
 ###To calculate Ts/Tv ratio
