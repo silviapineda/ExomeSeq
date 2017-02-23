@@ -111,6 +111,9 @@ write.table(df_joint_qc[,1:2],"variantList_vcf.txt",row.names = FALSE,sep="\t")
 #### Only SNPs #####
 ####################
 
+library("VariantAnnotation") #load the package
+joint.vcf <- readVcf("joint.output.snp.indel.recal.filtered.biallelic.SNPs.vcf","hg19")
+
 ###Convert into a data frame
 snpgdsVCF2GDS("joint.output.snp.indel.recal.filtered.biallelic.SNPs.vcf", "joint.output.snp.indel.recal.filtered.biallelic.SNPs.gds", method="copy.num.of.ref")
 genofile <- snpgdsOpen("joint.output.snp.indel.recal.filtered.biallelic.SNPs.gds")
@@ -156,12 +159,12 @@ df_joint <- df_joint[which(df_joint$snp_chromosome!= "X" & df_joint$snp_chromoso
                            & df_joint$snp_chromosome!= "GL000239.1" & df_joint$snp_chromosome!= "GL000240.1" & df_joint$snp_chromosome!="GL000241.1" & df_joint$snp_chromosome!= "GL000242.1" & df_joint$snp_chromosome!= "GL000243.1" & df_joint$snp_chromosome!= "GL000244.1" 
                            & df_joint$snp_chromosome!= "GL000245.1" & df_joint$snp_chromosome!= "GL000246.1" & df_joint$snp_chromosome!= "GL000247.1" & df_joint$snp_chromosome!= "GL000248.1"),]
 
-#n=
+#n=515,899
 
 ###Filther those that are not annotated 
 my_annovar<-read.csv("~/Data/Catalyst/ExomeSeq/ANNOVAR/myanno.joint.output.recal.filtered.biallelic.SNPs.avinput.hg19_multianno.csv")
 colnames(df_joint)[2:3]<-c("Start","Chr")
-merge_data <- merge(my_annovar,df_joint, by=c("Chr","Start")) #536,061
+merge_data <- merge(my_annovar,df_joint, by=c("Chr","Start")) #515,899
 merge_data_annotated <- merge_data[,c(1:7,9,14:18,44:98,100,99,100)]
 colnames(merge_data_annotated)[c(69,71)]<-c("Discovery-270862-R1","Discovery-270862-R2")
 df_joint_annotated<-merge_data_annotated
@@ -169,7 +172,7 @@ df_joint_annotated<-merge_data_annotated
 ##QC of 95% of non-missingness
 exome_variants<-data.matrix(df_joint_annotated[,16:71])
 rownames(exome_variants)<-df_joint_annotated$snp_id
-exome_variants_qc<-exome_variants[rowSums(is.na(exome_variants) == FALSE) >= 52,] #507,218 that has at least 95% of non-missingness
+exome_variants_qc<-exome_variants[rowSums(is.na(exome_variants) == FALSE) >= 52,] #488,539 that has at least 95% of non-missingness
 id.qc<-match(rownames(exome_variants_qc),df_joint_annotated$snp_id)
 df_joint_qc<-df_joint_annotated[na.omit(id.qc),]
 
