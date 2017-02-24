@@ -25,7 +25,7 @@ library("cowplot")
 setwd("/Users/Pinedasans/Documents/Catalyst/Results/")
 
 ###Reading the Total genotypes data frame
-load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/VCF/ExomeSeqVCF_SNPs.Rdata")
+load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/ExomeSeqVCF_SNPs.Rdata")
 
 ##Load the data with the difference
 load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/DiffByPairs.RData")
@@ -175,7 +175,7 @@ write.table(p.value,file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.e
 p.value<-read.table(file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.endpoints.txt")
 p.value<-p.value[,1]
 p.value.adj<-p.adjust(p.value,method = "BH") #There are no significant results after MT correction
-exome_variants_sign<-exome_variants_diff2[,which(p.value<0.01)] #123
+exome_variants_sign<-exome_variants_diff2[,which(p.value<0.001)] #123
 p.value.sign<-p.value[which(p.value<0.001)]
 
 OR<-NULL
@@ -202,7 +202,7 @@ for(i in 1:ncol(exome_variants_sign)){
 ###Annotate the variants
 id.joint<-match(colnames(exome_variants_sign),df_joint_qc$snp_id)
 df_joint_sign<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.value.sign,OR,p.value.OR)
-write.table(df_joint_sign,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointFisherTest.txt")
+write.table(df_joint_sign,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointFisherTestSign90%.txt",sep="\t",row.names = F)
 
 
 ########################
@@ -292,14 +292,15 @@ id.joint<-match(colnames(exome_variants_race_sign),df_joint_qc$snp_id)
 df_joint_sign_race<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.value.race.sign)
 write.table(df_joint_sign_race,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsRaceFisherTest.txt")
 
-
+###########################################################################################################################################################
 
 
 #########################
 ##### Random Forest #### 
 ########################
 ##Apply random forest using the p<0.01 for the fisher exact test
-exome_variants_sign_full<-exome_variants_sign[ , ! apply( exome_variants_sign , 2 , function(x) any(is.na(x)) ) ] #1271
+exome_variants_diff_complete<-exome_variants_diff2[ , ! apply( exome_variants_diff2, 2 , function(x) any(is.na(x)) ) ] #450,981
+
 #####Apply RandomForest 
 library("randomForest")
 library("RColorBrewer")
@@ -308,6 +309,27 @@ library("party")
 
 endpoint<-ifelse(demographics$phenotype[non.list]=="No-REJ",0,
                  ifelse(demographics$phenotype[non.list]=="CMR",1,2))
+
+save(exome_variants_diff_complete,demographics,file="/Users/Pinedasans/Data/Catalyst/DataRF.Rdata")
+
+###Run in the server the complete RandomForest selection
+library("VSURF")
+fit<-VSURF(x = exome_variants_sign_full, y=demographics$phenotype[non.list],parallel = TRUE,ncores=30)
+
+
+load("/Users/Pinedasans/Documents/Catalyst/Results/")
+OOB<-NULL
+for (i in c(10,50,100,200,500,1000)){
+  print(i)
+  model.rf <- tuneRF(data.frame(exome_variants_sign),demographics$phenotype[non.list],stepFactor = 2,ntreeTry = i)
+  model.rf
+}
+
+OOB<-na.omit(OOB)
+
+set.seed(5)
+model.rf <- randomForest(demographics$phenotype[non.list]~., data.frame(exome.variants.diff.3[,fit$varselect.interp]),
+                         proximity=TRUE, keep.forest=T,ntree=50)
 
 set.seed(2)
 fit<-randomForest(endpoint ~., data.frame(exome_variants_sign_full),ntree=100,importance=T)
@@ -343,18 +365,7 @@ text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))
 
 
 
-OOB<-NULL
-for (i in c(10,50,100,200,500,1000)){
-  print(i)
-    model.rf <- tuneRF(data.frame(exome_variants_sign),demographics$phenotype[non.list],stepFactor = 2,ntreeTry = i)
-   model.rf
-}
 
-OOB<-na.omit(OOB)
-
-set.seed(5)
-model.rf <- randomForest(demographics$phenotype[non.list]~., data.frame(exome.variants.diff.3[,fit$varselect.interp]),
-                         proximity=TRUE, keep.forest=T,ntree=50)
 
 #get the first tree (k = 1)
 first_tree <- getTree(model.rf, k=5, labelVar=TRUE)
@@ -421,11 +432,5 @@ id.joint<-match(colnames(exome.variants.diff.3.int[,fit$varselect.interp]),df.jo
 df.joint.annotated.sign.race.RF<-df.joint.annotated.sign.race[id.joint,] #63 restricted to NA
 
 
-#################
-################
-### Endothelial listr of genes
-Ab_list<-read.table("/Users/Pinedasans/Data/Catalyst/Endothelial cell cross match rejection list.txt")
-match(as.character(Ab_list[,1]),as.character(df.joint.annotated.sign$Gene.refGene))
-match(as.character(Ab_list[,1]),as.character(df.joint.sign.annotated.eQTL.blood$Gene.refGene))
-match(as.character(Ab_list[,1]),as.character(df.joint.sign.annotated.eQTL.artery$Gene.refGene))
+
 
