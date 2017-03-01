@@ -161,6 +161,8 @@ exome_variants_present_t<-t(exome_variants_present)
 exome_variants_diff<-apply(exome_variants_present_t,2,function(x) abs(diff(x))[non.list])
 exome_variants_diff2<-apply(exome_variants_diff,2,function(x) replace(x,x==2,1))
 
+save(exome_variants_diff2,demographics,variant_list,file="/Users/Pinedasans/Data/Catalyst/ExomeSeq_Diff_demo.Rdata")
+
 ###Considering a fisher.test
 p.value<-rep(NA,ncol(exome_variants_diff2))
 for (i in 1:ncol(exome_variants_diff2)){
@@ -175,7 +177,7 @@ write.table(p.value,file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.e
 p.value<-read.table(file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.endpoints.txt")
 p.value<-p.value[,1]
 p.value.adj<-p.adjust(p.value,method = "BH") #There are no significant results after MT correction
-exome_variants_sign<-exome_variants_diff2[,which(p.value<0.05)] #123
+exome_variants_sign<-exome_variants_diff2[,which(p.value<0.001)] #123
 p.value.sign<-p.value[which(p.value<0.001)]
 
 OR<-NULL
@@ -293,187 +295,3 @@ df_joint_sign_race<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.
 write.table(df_joint_sign_race,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsRaceFisherTest.txt")
 
 ###########################################################################################################################################################
-
-
-#########################
-##### Random Forest #### 
-########################
-#####Apply RandomForest 
-library("randomForest")
-library("RColorBrewer")
-library("ROCR")
-library("party")
-
-##Prepare data to run VSURF in the server
-exome_variants_diff_complete<-exome_variants_diff2[ , ! apply( exome_variants_diff2, 2 , function(x) any(is.na(x)) ) ] #450,981
-save(exome_variants_diff_complete,demographics,file="/Users/Pinedasans/Data/Catalyst/DataRF.Rdata")
-
-
-### 1. Apply random forest to find the variants selected by VSURF using three categories (AMR, CMR, NoRej)
-load("/Users/Pinedasans/Documents/Catalyst/Results/ResultsRF.Rdata")
-
-# Create model with the variants found with the VSURF
-endpoint<-ifelse(demographics$phenotype[non.list]=="No-REJ",3,
-                 ifelse(demographics$phenotype[non.list]=="CMR",2,1))
-dataset<-data.frame(exome_variants_diff_complete[,fit$varselect.interp])
-
-set.seed(2)
-result_roc<-NULL
-result_predicted<-NULL
-for (i in 1:28){
-  print(i)
-  trainData <- dataset[-i,]
-  testData <- dataset[i,]
-  trainDataClass<-demographics$phenotype[non.list][-i]
-  testDataClass<-demographics$phenotype[non.list][i]
-  
-  rf_output <- randomForest(trainDataClass~.,data=trainData,proximity=TRUE, keep.forest=T,ntree=100)
-  result_predicted <- c(result_predicted,predict(rf_output, testData)) # Prediction
-}
-result_roc <- multiclass.roc(endpoint, result_predicted)$auc
-
-rf_output_total <- randomForest(demographics$phenotype[non.list]~.,data=dataset,proximity=TRUE, keep.forest=T,ntree=100)
-MDSplot(rf_output_total, demographics$phenotype[non.list])
-legend("bottomleft", legend=levels(demographics$phenotype[non.list]),
-       fill=brewer.pal(length(levels(demographics$phenotype[non.list])),"Set1")) 
-
-###Apply logistic regression to find only those that are risk 
-exome_variants_rf_selected<-exome_variants_diff_complete[,fit$varselect.interp]
-endpoint<-ifelse(demographics$phenotype[non.list]=="No-REJ",1,
-                 ifelse(demographics$phenotype[non.list]=="CMR",2,3))
-OR<-NULL
-p.value.OR<-NULL
-for (i in 1:ncol(exome_variants_rf_selected)){
-  print(i)
-  model<-glm(exome_variants_rf_selected[,i]~endpoint,family = "binomial")
-  #m<-polr(factor(endpoint) ~ exome.variants.sign[,i],Hess=TRUE)
-  OR[i]<-exp(coef(model))[2]
-  p.value.OR[i]<-coefficients(summary(model))[2,4]
-}
-
-Diff.AMR<-NULL
-Diff.CMR<-NULL
-Diff.NoRej<-NULL
-for(i in 1:ncol(exome_variants_rf_selected)){
-  Diff.AMR[i]<-table(exome_variants_rf_selected[which(demographics$phenotype[non.list]=="AMR"),i]!=0)['TRUE']
-  Diff.CMR[i]<-table(exome_variants_rf_selected[which(demographics$phenotype[non.list]=="CMR"),i]!=0)['TRUE']
-  Diff.NoRej[i]<-table(exome_variants_rf_selected[which(demographics$phenotype[non.list]=="No-REJ"),i]!=0)['TRUE']
-}
-
-###Annotate the variants
-id.joint<-match(colnames(exome_variants_rf_selected),df_joint_qc$snp_id)
-df_joint_sign<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,OR,p.value.OR,rf_output$importance)
-write.table(df_joint_sign,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointRF.txt",sep="\t",row.names = F)
-
-
-##### 2. Apply random forest to find the variants selected by VSURF using Rej vs. NoRej
-load("/Users/Pinedasans/Documents/Catalyst/Results/ResultsRF_RejvsNoRej.Rdata")
-
-dataset<-data.frame(exome_variants_diff_complete[,fit$varselect.interp])
-phenotype<-as.factor(ifelse(demographics$phenotype[non.list]=="AMR","Rej",
-                  ifelse(demographics$phenotype[non.list]=="CMR","Rej","NoRej")))
-
-set.seed(2)
-result_roc<-NULL
-dataset<-data.frame(exome_variants_diff_complete[,fit$varselect.interp])
-phenotype<-as.factor(ifelse(demographics$phenotype[non.list]=="AMR","Rej",
-                            ifelse(demographics$phenotype[non.list]=="CMR","Rej","NoRej")))
-result_predicted<-NULL
-for (i in 1:28){
-  print(i)
-  trainData <- dataset[-i,]
-  testData <- dataset[i,]
-  trainDataClass<-phenotype[-i]
-  testDataClass<-phenotype[i]
-  
-  #fit<-VSURF(x = trainData, trainDataClass,parallel = TRUE,ncores=2)
-  rf_output <- randomForest(trainDataClass~.,data=trainData,proximity=TRUE, keep.forest=T,ntree=100)
-  result_predicted <- c(result_predicted,predict(rf_output, testData,type="prob")[1,2]) # Prediction
-}
-library(ROCR)
-predictions=as.vector(result_predicted)
-pred=prediction(predictions,phenotype)
-
-perf_AUC=performance(pred,"auc") #Calculate the AUC value
-AUC=perf_AUC@y.values[[1]]
-
-perf_ROC=performance(pred,"tpr","fpr") #plot the actual ROC curve
-plot(perf_ROC, main="ROC plot")
-text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))
-
-
-rf_output_total<- randomForest(phenotype~.,data=dataset,proximity=TRUE, keep.forest=T,ntree=100)
-MDSplot(rf_output_total, phenotype)
-legend("topright", legend=c("AMR+CMR","NoRej"),fill=brewer.pal(2,"Set1")) 
-
-
-exome_variants_rf_selected<-exome_variants_diff_complete[,fit$varselect.interp]
-Diff.AMR<-NULL
-Diff.CMR<-NULL
-Diff.NoRej<-NULL
-for(i in 1:ncol(exome_variants_rf_selected)){
-  Diff.AMR[i]<-table(exome_variants_rf_selected[which(demographics$phenotype[non.list]=="AMR"),i]!=0)['TRUE']
-  Diff.CMR[i]<-table(exome_variants_rf_selected[which(demographics$phenotype[non.list]=="CMR"),i]!=0)['TRUE']
-  Diff.NoRej[i]<-table(exome_variants_rf_selected[which(demographics$phenotype[non.list]=="No-REJ"),i]!=0)['TRUE']
-}
-
-###Annotate the variants
-id.joint<-match(colnames(exome_variants_rf_selected),df_joint_qc$snp_id)
-df_joint_sign<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,rf_output$importance)
-write.table(df_joint_sign,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointRF_RejvsNoRej.txt",sep="\t",row.names = F)
-
-
-### 3. Apply random forest to find the variants selected by VSURF using AMR vs. CMRandNoRej
-load("/Users/Pinedasans/Documents/Catalyst/Results/ResultsRF_AMRvsCMRNoRej.Rdata")
-
-dataset<-data.frame(exome_variants_diff_complete[,fit$varselect.interp])
-phenotype<-as.factor(ifelse(demographics$phenotype[non.list]=="CMR","NoRej","AMR"))
-
-set.seed(2)
-result_predicted<-NULL
-for (i in 1:28){
-  print(i)
-  trainData <- dataset[-i,]
-  testData <- dataset[i,]
-  trainDataClass<-phenotype[-i]
-  testDataClass<-phenotype[i]
-  
-  #fit<-VSURF(x = trainData, trainDataClass,parallel = TRUE,ncores=2)
-  rf_output <- randomForest(trainDataClass~.,data=trainData,proximity=TRUE, keep.forest=T,ntree=100)
-  result_predicted <- c(result_predicted,predict(rf_output, testData,type="prob")[1,2]) # Prediction
-}
-library(ROCR)
-predictions=as.vector(result_predicted)
-pred=prediction(predictions,phenotype)
-
-perf_AUC=performance(pred,"auc") #Calculate the AUC value
-AUC=perf_AUC@y.values[[1]]
-
-perf_ROC=performance(pred,"tpr","fpr") #plot the actual ROC curve
-plot(perf_ROC, main="ROC plot")
-text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))
-
-rf_output_total <- randomForest(phenotype~.,data=dataset,proximity=TRUE, keep.forest=T,ntree=100)
-MDSplot(rf_output_total, phenotype)
-legend("topright", legend=c("AMR","CMR+NoRej"),fill=brewer.pal(2,"Set1")) 
-
-
-############################################
-#### Apply VSURF in a two step process #####
-###########################################
-
-p.value<-read.table(file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.endpoints.txt")
-exome_variants_sign<-exome_variants_diff2[,which(p.value<0.05)] #8,182
-
-##Prepare data to run VSURF in the server
-exome_variants_diff_complete<-exome_variants_sign[ , ! apply( exome_variants_sign, 2 , function(x) any(is.na(x)) ) ] #7,682
-#save(exome_variants_diff_complete,demographics,file="/Users/Pinedasans/Data/Catalyst/DataRF.Rdata")
-
-
-### Example of using Fisher Exact Test to pre-select the variables with Random Forest 
-
-# Create model with the variants found with the VSURF
-endpoint<-ifelse(demographics$phenotype[non.list]=="No-REJ",3,
-                 ifelse(demographics$phenotype[non.list]=="CMR",2,1))
-dataset<-data.frame(exome_variants_diff_complete)
-save(dataset,demographics,file="/Users/Pinedasans/Data/Catalyst/DataRF_preselected.Rdata")
