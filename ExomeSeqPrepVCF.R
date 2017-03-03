@@ -184,8 +184,10 @@ save(df_joint_qc,exome_variants_qc,file="ExomeSeqVCF_SNPs.Rdata")
 #########################
 ####Read the 1000G vcf 
 #########################
-library("VariantAnnotation") #load the package
+#Work Directory
+setwd("/Users/Pinedasans/Data/Catalyst/ExomeSeq/1000G/")
 
+library("VariantAnnotation") #load the package
 variants.1000G.vcf <- readVcf("1000G.variants.selected.vcf","hg19")
 
 
@@ -209,3 +211,12 @@ save(df.1000G,file="ExomeSeq1000GVCF.Rdata")
 write.table(df.1000G,file="df.1000G.txt")
 ##I have executed the program Mikel has sent to me (silvia-project-assembly-1.0.jar) to chande the 0 for 2 and 2 for 0.
 ##The name is df.1000G.mod.txt
+df_1000G_mod<-read.table("/Users/Pinedasans/Data/Catalyst/ExomeSeq/1000G/df_1000G_mod.txt") #433,402
+load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/ExomeSeqVCF_SNPs.Rdata")
+colnames(df_1000G_mod)[2:3]<-c("Start","Chr")
+merge_data <- merge(df_joint_qc,df_1000G_mod, by=c("Chr","Start")) #420,569
+exome_variants_1000G<-data.matrix(merge_data[,-c(1:15,72:74)])
+rownames(exome_variants_1000G)<-merge_data$snp_id.x
+exome_variants_1000G_complete<-na.omit(exome_variants_1000G) #402,169
+
+save(exome_variants_1000G_complete,file="/Users/Pinedasans/Data/Catalyst/ExomeSeq/1000G/ExomeSeq1000G_PCA.Rdata")

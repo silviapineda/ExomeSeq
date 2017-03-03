@@ -47,10 +47,10 @@ Distance <- sqrt(((x2-x1)^2)+((y2-y1)^2))
 write.table(Distance,"/Users/Pinedasans/Documents/Catalyst/Results/Distance.PCA.txt")
 
 ##2. Analysis considering only the significant SNPs
-result_endpoint_fisher<-read.table("/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointFisherTest.txt",header=T)
-exome_result_endpoint_fisher<-result_endpoint_fisher[,16:71]
-exome_result_endpoint_fisher_complete<-t(exome_result_endpoint_fisher[complete.cases(exome_result_endpoint_fisher),]) #
-pca <- prcomp(exome_result_endpoint_fisher_complete)
+result_endpoint_RF<-read.table("/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointRF.txt",header=T)
+exome_result_endpoint_RF<-result_endpoint_RF[,16:71]
+exome_result_endpoint_RF_complete<-t(exome_result_endpoint_RF[complete.cases(exome_result_endpoint_RF),]) #
+pca <- prcomp(exome_result_endpoint_RF_complete)
 plot(pca, type = "l")
 biplot(pca,cex=c(0.6,0.6))
 
@@ -64,15 +64,30 @@ y1<-PCA2[non.list]
 x2<-PCA1[non.list+1]
 y2<-PCA1[non.list+1]
 Distance <- sqrt(((x2-x1)^2)+((y2-y1)^2))
-write.table(Distance,"/Users/Pinedasans/Documents/Catalyst/Results/Distance_PCA_signVarEnpointFisher.txt")
+#write.table(Distance,"/Users/Pinedasans/Documents/Catalyst/Results/Distance_PCA_signVarEnpointRF.txt")
 boxplot(Distance~demographics$phenotype[non.list])
 summary(lm(Distance~demographics$phenotype[non.list]))
 
+##3. Analysis considering the mismatch variants
+load("/Users/Pinedasans/Data/Catalyst/ExomeSeq_Diff_demo.Rdata")
+rownames(exome_variants_diff_complete)<-variant_list$Id2
+pca <- prcomp(exome_variants_diff_complete) 
+
+plot(pca, type = "l")
+SPP <- demographics$phenotype[non.list]
+SPP <-addNA(SPP)
+levels.SPP <- factor(c("AMR","CMR","NoRej"))
+COLOR <- c(2:4)
+
+pc <- c(1,2)
+plot(pca$x[,pc[1]], pca$x[,pc[2]], col=COLOR[SPP],pch=20,xlab="PCA1",ylab="PCA2")
+legend(-110,-100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
 
 
-##3. Analysis considering the 1000G population
+
+##4. Analysis considering the 1000G population
 ##Once it has been run in the server
-load("pca.Rdata")
+load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/pca.Rdata")
 
 sample1000g<-read.table("igsr_samples.txt",header=T,sep="\t")
 id.1000G<-match(rownames(pca$x),sample1000g$Sample_name)
@@ -86,7 +101,7 @@ COLOR <- c(2:6,1)
 
 
 pc <- c(1,2)
-plot(pca$x[,pc[1]][1:2559], pca$x[,pc[2]][1:2559], col=COLOR[SPP],pch=20,xlab="PCA2",ylab="PCA1")
+plot(pca$x[,pc[1]][1:2563], pca$x[,pc[2]][1:2563], col=COLOR[SPP],pch=20,xlab="PCA2",ylab="PCA1")
 legend(110,100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
 #text(pca$x[2505:2559,pc[1]], pca$x[2505:2559,pc[2]],labels=rownames(pca$x)[2505:2559],cex=0.8,col=1)
 library("zoom")
