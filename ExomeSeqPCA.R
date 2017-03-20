@@ -87,11 +87,11 @@ legend(-110,-100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
 
 ##4. Analysis considering the 1000G population
 ##Once it has been run in the server
-load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/pca.Rdata")
+load("/Users/Pinedasans/Catalyst/Data/ExomeSeq/pca.Rdata")
 
-sample1000g<-read.table("igsr_samples.txt",header=T,sep="\t")
+sample1000g<-read.table("/Users/Pinedasans/Catalyst/Data/ExomeSeq/igsr_samples.txt",header=T,sep="\t")
 id.1000G<-match(rownames(pca$x),sample1000g$Sample_name)
-demographics<-read.table("/Users/Pinedasans/Data/Catalyst/Demographics.txt",sep="\t",header=T) ##Reading the variant list with the phenotype
+demographics<-read.table("/Users/Pinedasans/Catalyst/Data/Demographics.txt",sep="\t",header=T) ##Reading the variant list with the phenotype
 
 ###Plotting the result with the super population
 SPP <- sample1000g$Superpopulation_code[id.1000G]

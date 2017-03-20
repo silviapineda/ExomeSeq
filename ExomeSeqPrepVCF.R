@@ -29,7 +29,7 @@ print(x)
 # biocLite("SNPRelate")
 
 #Work Directory
-setwd("~/Data/Catalyst/ExomeSeq/VCF/")
+setwd("/Users/Pinedasans/Catalyst/Data/ExomeSeq/VCF/")
 
 library("VariantAnnotation") #load the package
 joint.vcf <- readVcf("joint.output.snp.indel.recal.filtered.biallelic.vcf","hg19")

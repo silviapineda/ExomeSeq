@@ -22,19 +22,19 @@ library("gridExtra")
 library("cowplot")
 
 #Work Directory
-setwd("/Users/Pinedasans/Documents/Catalyst/Results/")
+setwd("/Users/Pinedasans/Catalyst/Results/")
 
 ###Reading the Total genotypes data frame
-load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/ExomeSeqVCF_SNPs.Rdata")
+load("/Users/Pinedasans/Catalyst/Data/ExomeSeq/ExomeSeqVCF_SNPs.Rdata")
 
 ##Load the data with the difference
-load("/Users/Pinedasans/Data/Catalyst/ExomeSeq/DiffByPairs.RData")
+load("/Users/Pinedasans/Catalyst/Data/ExomeSeq/DiffByPairs.RData")
 
 ###List the variants that are present in Donor and not in recipient by outcome
-variant_list<-read.table("/Users/Pinedasans/Data/Catalyst/ExomeSeq/Total_variants.txt",header=T ) ##Reading the variant list with the phenotype
+variant_list<-read.table("/Users/Pinedasans/Catalyst/Data/ExomeSeq/Total_variants.txt",header=T ) ##Reading the variant list with the phenotype
 
 ###List the Demographic info
-demographics<-read.table("/Users/Pinedasans/Data/Catalyst/Demographics.txt",sep="\t",header=T)
+demographics<-read.table("/Users/Pinedasans/Catalyst/Data/Demographics.txt",sep="\t",header=T)
 
 #Demographics recipients
 table(demographics$SEX[non.list],demographics$phenotype[non.list])
