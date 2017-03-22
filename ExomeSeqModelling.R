@@ -20,6 +20,7 @@ print(x)
 library("ggplot2")
 library("gridExtra")
 library("cowplot")
+library("RColorBrewer")
 
 #Work Directory
 setwd("/Users/Pinedasans/Catalyst/Results/")
@@ -104,32 +105,33 @@ non.list<- seq(1,56,2) ##Donors
 m <- rbind(c(2,3,4),c(1,1,1))
 layout(m)
 layout.show(4)
+fill=brewer.pal(3,"Set1")
 
-boxplot(variant_mismatch~variant_list$phenotype,frame.plot = FALSE,col=c("goldenrod","darkorange","darkolivegreen4"),ylab="Num Variants Differ",ylim=c(40000,140000))
+boxplot(variant_mismatch~variant_list$phenotype,frame.plot = FALSE,col=fill,ylab="Num Variants Differ",ylim=c(40000,140000))
 
 num.AMR<-variant_mismatch[order(variant_list$phenotype)][1:14]
-plot(num.AMR[order(num.AMR,decreasing = T)],type="h", col="goldenrod",ylim=c(40000,140000),ylab="Num Variants Differ",lty=1,lwd=5,xaxt="n",xlab="Nº pairs",
+plot(num.AMR[order(num.AMR,decreasing = T)],type="h", col=fill[1],ylim=c(40000,140000),ylab="Num Variants Differ",lty=1,lwd=5,xaxt="n",xlab="Nº pairs",
      main="AMR (386,958 variants)",frame.plot = FALSE)
-axis(1,at= 1:14,label= paste("pair",rownames(variant_list),sep="")[order(variant.list$phenotype)][1:14][order(num.AMR,decreasing = T)],las=2,cex.axis=0.8)
-text(num.AMR[order(num.AMR,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant.list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.9)
-text(num.AMR[order(num.AMR,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant.list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.9)
-text(num.AMR[order(num.AMR,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant.list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.9)
+axis(1,at= 1:14,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],las=2,cex.axis=0.8)
+text(num.AMR[order(num.AMR,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.9)
+text(num.AMR[order(num.AMR,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.9)
+text(num.AMR[order(num.AMR,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.9)
 
 num.CMR<-variant_mismatch[order(variant_list$phenotype)][15:21]
-plot(num.CMR[order(num.CMR,decreasing = T)],type="h", col="darkorange",ylim=c(40000,140000),ylab="Num Variants Differ",lty=1,lwd=5,xaxt="n",xlab="Nº pairs",
+plot(num.CMR[order(num.CMR,decreasing = T)],type="h", col=fill[2],ylim=c(40000,140000),ylab="Num Variants Differ",lty=1,lwd=5,xaxt="n",xlab="Nº pairs",
      main="CMR (268,722 variants)",frame.plot = FALSE)
-axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant.list$phenotype)][15:21][order(num.CMR,decreasing = T)],las=2,cex.axis=0.8)
-text(num.CMR[order(num.CMR,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant.list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.9)
-text(num.CMR[order(num.CMR,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant.list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.9)
-text(num.CMR[order(num.CMR,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant.list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.9)
+axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],las=2,cex.axis=0.8)
+text(num.CMR[order(num.CMR,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.9)
+text(num.CMR[order(num.CMR,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.9)
+text(num.CMR[order(num.CMR,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.9)
 
 num.NoRej<-variant_mismatch[order(variant_list$phenotype)][22:28]
-plot(num.NoRej[order(num.NoRej,decreasing = T)],type="h", col="darkolivegreen4",ylim=c(40000,140000),ylab="Num Variants Differ",lwd=5,lty=1,xaxt="n",xlab="Nº pairs",
+plot(num.NoRej[order(num.NoRej,decreasing = T)],type="h", col=fill[3],ylim=c(40000,140000),ylab="Num Variants Differ",lwd=5,lty=1,xaxt="n",xlab="Nº pairs",
      main="No-Rej (248,531 variants)",frame.plot = FALSE)
-axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant.list$phenotype)][22:28][order(num.NoRej,decreasing = T)],las=2,cex.axis=0.8)
-text(num.NoRej[order(num.NoRej,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant.list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.9)
-text(num.NoRej[order(num.NoRej,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant.list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.9)
-text(num.NoRej[order(num.NoRej,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant.list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.9)
+axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],las=2,cex.axis=0.8)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.9)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.9)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.9)
 
 
 summary(lm(variant_mismatch~demographics$phenotype[non.list]))
