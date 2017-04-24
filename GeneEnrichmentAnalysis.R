@@ -24,8 +24,8 @@ setwd("/Users/Pinedasans/Catalyst/Results/")
 resultsRF<-read.table("/Users/Pinedasans/Catalyst/Results/ResultsEndpointRF.txt",header=T,sep="\t")
 resultsRF_assocRej<-resultsRF[which(resultsRF$OR>1.4),]
 
-resultFisher<-read.table("/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTest.txt",header=T,sep="\t")
-resultFisher_assocRej<-resultFisher[which(resultFisher$OR>1.4),]
+resultFisher<-read.table("/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",header=T,sep="\t")
+resultFisher_assocRej<-resultFisher[which(resultFisher$OR>1),]
 
 id.overlap<-match(resultFisher_assocRej$Gene.refGene,resultsRF_assocRej$Gene.refGene)
 resultFisher_assocRej[which(is.na(id.overlap)==T),]
@@ -36,7 +36,7 @@ gene.expr.each.kidney<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichmen
 gene.expr.high.kidney<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/gene.kidney.high.expr.txt")
 gene.kidney<-union(union(rownames(gene.expr.up.kidney),as.character(gene.expr.each.kidney[,1])),rownames(gene.expr.high.kidney)) #2967
 
-length(na.omit(match(resultsRF_assocRej$Gene.refGene,gene.kidney))) #11
+length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.kidney))) #13
 
 
 ##Vessels
@@ -45,7 +45,7 @@ gene.expr.each.vessels<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichme
 gene.expr.high.vessels<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/gene.vessel.high.expr.txt")
 gene.vessels<-union(union(rownames(gene.expr.up.vessels),as.character(gene.expr.each.vessels[,1])),rownames(gene.expr.high.vessels)) #3513
 
-length(na.omit(match(resultsRF_assocRej$Gene.refGene,gene.vessels))) #11
+length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.vessels))) #15
 
 
 ###Immuno
@@ -59,7 +59,7 @@ Dataset4<-read.csv("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/InnateDB_gene
 ListGene4<-na.omit(as.character(Dataset4$name))
 gene.immuno<-union(union(union(ListGene1,ListGene2),ListGene3),ListGene4) #8745
 
-length(na.omit(match(resultsRF_assocRej$Gene.refGene,gene.immuno))) #18
+length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.immuno))) #17
 
 
 ##Surface genes
@@ -79,20 +79,21 @@ ListGene3<-na.omit(as.character(Dataset3$SourceGeneName))
 
 gene.surface<-union(union(ListGene1,ListGene2),ListGene3)  #7341
 
-length(na.omit(match(resultsRF_assocRej$Gene.refGene,gene.surface))) #3 #22
+length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.surface))) #48
 
 
 ##Enrichment analysis #19725 total coding genes
-counts = (matrix(data = c(13, 57, 2786, 16939), nrow = 2))
+##The number of genes unique is 74
+counts = (matrix(data = c(13, 61, 2786, 16939), nrow = 2)) #p-value = 0.5
 chisq.test(counts)
 
-counts = (matrix(data = c(15, 55, 3291, 16434), nrow = 2))
+counts = (matrix(data = c(15, 59, 3291, 16434), nrow = 2)) #p-value = 0.5
 chisq.test(counts)
 
-counts = (matrix(data = c(17, 53, 8745, 10980), nrow = 2))
+counts = (matrix(data = c(17, 57, 8745, 10980), nrow = 2)) #p-value = 0.0003
 chisq.test(counts)
 
-counts = (matrix(data = c(48,22, 7341, 12384), nrow = 2))
+counts = (matrix(data = c(48,26, 7341, 12384), nrow = 2)) #p-value = 1.7 *10-6
 chisq.test(counts)
 
 
@@ -103,77 +104,79 @@ colnames(genes_GTEx)<-c("Chr","Start","end","transcipt","gene")
 eQTL_sign_artery_aorta<-read.table("/Users/Pinedasans/Catalyst/Data/GTEX/Artery_Aorta_eQTLs_sign.txt")
 colnames(eQTL_sign_artery_aorta)<-c("Chr","Start","transcript","V4","p-value","Beta","p-vale-adj")
 id.transript<-match(eQTL_sign_artery_aorta$transcript,genes_GTEx$transcipt)
-eQTL_sign_artery_aorta2<-cbind(eQTL_sign_artery_aorta,genes_GTEx$gene[id.transript])
-eQTL_sign_artery_aorta_coding<-eQTL_sign_artery_aorta2[which(is.na(eQTL_sign_artery_aorta2$`genes_GTEx$gene[id.transript]`)==F),]
-colnames(eQTL_sign_artery_aorta_coding)[8]<-"gene"
+eQTL_sign_artery_aorta2<-cbind(eQTL_sign_artery_aorta,genes_GTEx[id.transript,])
+eQTL_sign_artery_aorta_coding<-eQTL_sign_artery_aorta2[which(is.na(id.transript)==F),]
+colnames(eQTL_sign_artery_aorta_coding)[8:10]<-c("gene_chr","gene_start","gene_end")
 
 eQTL_sign_Coronary_aorta<-read.table("/Users/Pinedasans/Catalyst/Data/GTEX/Artery_Coronary_eQTLs_sign.txt")
 colnames(eQTL_sign_Coronary_aorta)<-c("Chr","Start","transcript","V4","p-value","Beta","p-vale-adj")
 id.transript<-match(eQTL_sign_Coronary_aorta$transcript,genes_GTEx$transcipt)
-eQTL_sign_Coronary_aorta2<-cbind(eQTL_sign_Coronary_aorta,genes_GTEx$gene[id.transript])
-eQTL_sign_Coronary_aorta_coding<-eQTL_sign_Coronary_aorta2[which(is.na(eQTL_sign_Coronary_aorta2$`genes_GTEx$gene[id.transript]`)==F),]
-colnames(eQTL_sign_Coronary_aorta_coding)[8]<-"gene"
+eQTL_sign_Coronary_aorta2<-cbind(eQTL_sign_Coronary_aorta,genes_GTEx[id.transript,])
+eQTL_sign_Coronary_aorta_coding<-eQTL_sign_Coronary_aorta2[which(is.na(id.transript)==F),]
+colnames(eQTL_sign_Coronary_aorta_coding)[8:10]<-c("gene_chr","gene_start","gene_end")
 
 eQTL_sign_Tibial_aorta<-read.table("/Users/Pinedasans/Catalyst/Data/GTEX/Artery_Tibial_eQTLs_sign.txt")
 colnames(eQTL_sign_Tibial_aorta)<-c("Chr","Start","transcript","V4","p-value","Beta","p-vale-adj")
 id.transript<-match(eQTL_sign_Tibial_aorta$transcript,genes_GTEx$transcipt)
-eQTL_sign_Tibial_aorta2<-cbind(eQTL_sign_Tibial_aorta,genes_GTEx$gene[id.transript])
-eQTL_sign_Tibial_aorta_coding<-eQTL_sign_Tibial_aorta2[which(is.na(eQTL_sign_Tibial_aorta2$`genes_GTEx$gene[id.transript]`)==F),]
-colnames(eQTL_sign_Tibial_aorta_coding)[8]<-"gene"
+eQTL_sign_Tibial_aorta2<-cbind(eQTL_sign_Tibial_aorta,genes_GTEx[id.transript,])
+eQTL_sign_Tibial_aorta_coding<-eQTL_sign_Tibial_aorta2[which(is.na(id.transript)==F),]
+colnames(eQTL_sign_Tibial_aorta_coding)[8:10]<-c("gene_chr","gene_start","gene_end")
 
 eQTL_bloodVessels<-rbind(eQTL_sign_artery_aorta_coding,eQTL_sign_Coronary_aorta_coding,eQTL_sign_Tibial_aorta_coding)
 
-merge_bloodVessels<-merge(resultsRF_assocRej,eQTL_bloodVessels,by=c("Chr","Start"))
+merge_bloodVessels<-merge(resultFisher_assocRej,eQTL_bloodVessels,by=c("Chr","Start"))
+write.table(merge_bloodVessels,"/Users/Pinedasans/Catalyst/Results/eQTL_bloodVessels.txt",sep="\t",row.names = F)
 
-length(na.omit(match(merge_bloodVessels$Gene.refGene,gene.kidney))) #24
-length(na.omit(match(merge_bloodVessels$Gene.refGene,gene.vessels))) #22
-length(na.omit(match(merge_bloodVessels$Gene.refGene,gene.immuno))) #9
-length(na.omit(match(merge_bloodVessels$Gene.refGene,gene.surface))) #6
+##Delete manually the repeated genes by transcript and leave the most signifcant transcript
+merge_bloodVessels<-read.table("/Users/Pinedasans/Catalyst/Results/eQTL_bloodVessels.txt",sep="\t",header = T)
+
+length(na.omit(match(merge_bloodVessels$gene,gene.kidney))) #9
+length(na.omit(match(merge_bloodVessels$gene,gene.vessels))) #9
+length(na.omit(match(merge_bloodVessels$gene,gene.immuno))) #5
+length(na.omit(match(merge_bloodVessels$gene,gene.surface))) #4
 
 ##Enrichment analysis #19725 total coding genes
-counts = (matrix(data = c(24, 24, 2786, 16939), nrow = 2))
+counts = (matrix(data = c(9, 16, 2786, 16939), nrow = 2)) #p-value= 0.004
 chisq.test(counts)
 
-counts = (matrix(data = c(22, 26, 3291, 16434), nrow = 2))
+counts = (matrix(data = c(9, 16, 3291, 16434), nrow = 2)) #p-value = 0.02
 chisq.test(counts)
 
-counts = (matrix(data = c(9, 39, 4677, 15058), nrow = 2))
+counts = (matrix(data = c(5, 19, 4677, 15058), nrow = 2)) #p-value = 0.9
 chisq.test(counts)
 
-counts = (matrix(data = c(6,42, 3845, 15880), nrow = 2))
+counts = (matrix(data = c(4,20, 3845, 15880), nrow = 2)) #p-value = 0.9
 chisq.test(counts)
 
 eQTL_sign_Whole_blood<-read.table("/Users/Pinedasans/Catalyst/Data/GTEX/Whole_Blood_eQTLs_sign.txt")
 colnames(eQTL_sign_Whole_blood)<-c("Chr","Start","transcript","V4","p-value","Beta","p-vale-adj")
 id.transript<-match(eQTL_sign_Whole_blood$transcript,genes_GTEx$transcipt)
-eQTL_sign_Whole_blood2<-cbind(eQTL_sign_Whole_blood,genes_GTEx$gene[id.transript])
-eQTL_sign_Whole_blood_coding<-eQTL_sign_Whole_blood2[which(is.na(eQTL_sign_Whole_blood2$`genes_GTEx$gene[id.transript]`)==F),]
-colnames(eQTL_sign_Whole_blood_coding)[8]<-"gene"
+eQTL_sign_Whole_blood2<-cbind(eQTL_sign_Whole_blood,genes_GTEx[id.transript,])
+eQTL_sign_Whole_blood_coding<-eQTL_sign_Whole_blood2[which(is.na(id.transript)==F),]
+colnames(eQTL_sign_Whole_blood_coding)[8:10]<-c("gene_chr","gene_start","gene_end")
 
-merge_wholeBlood<-merge(resultsRF_assocRej,eQTL_sign_Whole_blood_coding,by=c("Chr","Start")) #17variants
+merge_wholeBlood<-merge(resultFisher_assocRej,eQTL_sign_Whole_blood_coding,by=c("Chr","Start")) #17variants
+write.table(merge_wholeBlood,"/Users/Pinedasans/Catalyst/Results/eQTL_wholeBlood.txt",sep="\t",row.names = F)
 
-length(na.omit(match(merge_wholeBlood$Gene.refGene,gene.kidney))) #15
-length(na.omit(match(merge_wholeBlood$Gene.refGene,gene.vessels))) #12
-length(na.omit(match(merge_wholeBlood$Gene.refGene,gene.immuno))) #2
-length(na.omit(match(merge_wholeBlood$Gene.refGene,gene.surface))) #5
+merge_bloodVessels<-read.table("/Users/Pinedasans/Catalyst/Results/eQTL_bloodVessels.txt",sep="\t",header = T)
+
+length(na.omit(match(merge_wholeBlood$gene,gene.kidney))) #7
+length(na.omit(match(merge_wholeBlood$gene,gene.vessels))) #7
+length(na.omit(match(merge_wholeBlood$gene,gene.immuno))) #3
+length(na.omit(match(merge_wholeBlood$gene,gene.surface))) #2
 
 ##Enrichment analysis #19725 total coding genes
-counts = (matrix(data = c(15, 10, 2786, 16939), nrow = 2))
+counts = (matrix(data = c(7, 7, 2786, 16939), nrow = 2)) #p-value = 0.0005
 chisq.test(counts)
 
-counts = (matrix(data = c(12, 13, 3291, 16434), nrow = 2))
+counts = (matrix(data = c(7, 7, 3291, 16434), nrow = 2)) #p-alue = 0.002
 chisq.test(counts)
 
-counts = (matrix(data = c(2, 25, 4677, 15058), nrow = 2))
+counts = (matrix(data = c(3, 11, 4677, 15058), nrow = 2)) #p-value=0.999
 chisq.test(counts)
 
-counts = (matrix(data = c(5,25, 3845, 15880), nrow = 2))
+counts = (matrix(data = c(2,12, 3845, 15880), nrow = 2)) #p-value=0.8
 chisq.test(counts)
-
-
-
-
-
 
 
 

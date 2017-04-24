@@ -66,7 +66,7 @@ for (i in 1:28){
 }
 result_roc <- multiclass.roc(endpoint, result_predicted)$auc
 
-exome_variants_rf_selected<-exome_variants_diff_complete[,fit$varselect.interp]
+exome_variants_rf_selected<-exome_variants_diff_imputed[,fit$varselect.interp]
 rf_output_total <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_selected),proximity=TRUE, keep.forest=T,ntree=100)
 
 ##plot MDS

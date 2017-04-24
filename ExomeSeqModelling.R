@@ -120,7 +120,7 @@ fill=brewer.pal(3,"Set1")
 
 tiff("/Users/Pinedasans/Catalyst/Article/Boxplot.tiff", width = 12, height = 6, units = 'in', res = 300, compression = 'lzw')
 boxplot(variant_mismatch~variant_list$phenotype,frame.plot = FALSE,col=fill,ylab="Variants Mismatched",
-        ylim=c(40000,140000),cex=1.2)
+        ylim=c(40000,140000),cex=1.6)
 dev.off()
 
 num.AMR<-variant_mismatch[order(variant_list$phenotype)][1:14]
@@ -154,13 +154,13 @@ text(num.NoRej[order(num.NoRej,decreasing = T)]+6000,labels=demographics$RACE[y=
 text(num.NoRej[order(num.NoRej,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
 dev.off()
 
-summary(lm(variant_mismatch~demographics$phenotype[non.list]+demographics$mismatch[non.list]+demographics$REL2[non.list]))
+summary(lm(variant_mismatch~demographics$phenotype[non.list]+distance[,1]))
 
 distance<-read.table("/Users/Pinedasans/Catalyst/Results/Distance.PCA.txt")
 summary(lm(distance[,1]~demographics$phenotype[non.list]))
 boxplot(distance[,1]~variant_list$phenotype,frame.plot = FALSE,col=fill,ylab="Variants Mismatched",
       cex=1.2)
-
+plot(distance[,1],variant_mismatch)
 
 ##Selecting randomly 7 pairs from the AMR to find if there is significance with the same number of pairs in the AMR group
 p.value<-NULL
@@ -201,21 +201,24 @@ for (i in 1:ncol(exome_variants_diff2)){
   }
 }
 
-write.table(p.value,file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.endpoints.txt")
-p.value<-read.table(file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.endpoints.txt")
+write.table(p.value,file="/Users/Pinedasans/Catalyst/Results/p.value.endpoints.txt")
+p.value<-read.table(file="/Users/Pinedasans/Catalyst/Results/p.value.endpoints.txt")
 p.value<-p.value[,1]
 p.value.adj<-p.adjust(p.value,method = "BH") #There are no significant results after MT correction
 exome_variants_sign<-exome_variants_diff2[,which(p.value<0.001)] #123
 p.value.sign<-p.value[which(p.value<0.001)]
 
+library(MASS)
+#endpoint <- relevel(factor(endpoint), ref = "0")
 OR<-NULL
 p.value.OR<-NULL
 for (i in 1:ncol(exome_variants_sign)){
   print(i)
-  model<-glm(exome_variants_sign[,i]~endpoint,family = "binomial")
-  #m<-polr(factor(endpoint) ~ exome.variants.sign[,i],Hess=TRUE)
-  OR[i]<-exp(coef(model))[2]
-  p.value.OR[i]<-coefficients(summary(model))[2,4]
+  #model<-glm(exome_variants_sign[,i]~endpoint,family = "binomial")
+  m<-polr(factor(endpoint) ~ exome_variants_sign[,i],Hess=TRUE)
+  OR[i]<-exp(coef(summary(m)))[1,1]
+  p.value.OR[i]<- pnorm(abs(coef(summary(m))[1, "t value"]), lower.tail = FALSE) * 2
+ #p.value.OR[i]<-coefficients(summary(model))[2,4]
 }
 
 
@@ -232,7 +235,7 @@ for(i in 1:ncol(exome_variants_sign)){
 ###Annotate the variants
 id.joint<-match(colnames(exome_variants_sign),df_joint_qc$snp_id)
 df_joint_sign<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.value.sign,OR,p.value.OR)
-write.table(df_joint_sign,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsEndpointFisherTestSign90%.txt",sep="\t",row.names = F)
+write.table(df_joint_sign,file="/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",sep="\t",row.names = F)
 
 
 ########################
@@ -301,6 +304,8 @@ for (i in 1:ncol(exome_variants_diff2)){
 }
 
 write.table(p.value.race,file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.race.txt")
+
+
 p.value.race<-read.table(file="/Users/Pinedasans/Documents/Catalyst/Results/p.value.race.txt")
 p.value.race<-p.value.race[,1]
 p.value.race.adj<-p.adjust(p.value.race,method = "fdr")
@@ -321,5 +326,25 @@ for(i in 1:ncol(exome_variants_race_sign)){
 id.joint<-match(colnames(exome_variants_race_sign),df_joint_qc$snp_id)
 df_joint_sign_race<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.value.race.sign)
 write.table(df_joint_sign_race,file="/Users/Pinedasans/Documents/Catalyst/Results/ResultsRaceFisherTest.txt")
+
+####Applying multinomial adjusted by race
+library(MASS)
+OR<-NULL
+OR_race<-NULL
+p.value.OR<-NULL
+p.value.OR.race<-NULL
+for (i in 1:ncol(exome_variants_diff2)){
+  print(i)
+  m<-polr(factor(endpoint) ~ exome_variants_diff2[,i] + demographics$mismatch[non.list],Hess=TRUE)
+  OR[i]<-exp(coef(summary(m)))[1,1]
+  OR_race[i]<-exp(coef(summary(m)))[1,2]
+  p.value.OR[i]<- pnorm(abs(coef(summary(m))[1, "t value"]), lower.tail = FALSE) * 2
+  p.value.OR.race[i]<- pnorm(abs(coef(summary(m))[2, "t value"]), lower.tail = FALSE) * 2
+}
+write.table(cbind(OR,p.value.OR,OR_race,p.value.OR.race),file="/Users/Pinedasans/Catalyst/Results/ResultsMultinomialAdjByRace.txt")
+
+p.value.OR.2<-p.value.OR[which(is.na(p.value.OR)==FALSE)]
+p.value.OR.3<-p.value.OR.2[which(p.value.OR.2!=0)]
+
 
 ###########################################################################################################################################################
