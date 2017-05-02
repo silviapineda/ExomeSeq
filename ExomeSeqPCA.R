@@ -87,7 +87,7 @@ legend(-110,-100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
 
 ##4. Analysis considering the 1000G population
 ##Once it has been run in the server
-load("/Users/Pinedasans/Catalyst/Data/ExomeSeq/pca.Rdata")
+load("/Users/Pinedasans/Catalyst/Data/pca.Rdata")
 
 sample1000g<-read.table("/Users/Pinedasans/Catalyst/Data/ExomeSeq/igsr_samples.txt",header=T,sep="\t")
 id.1000G<-match(rownames(pca$x),sample1000g$Sample_name)
@@ -101,11 +101,40 @@ COLOR <- c(2:6,1)
 
 
 pc <- c(1,2)
-plot(pca$x[,pc[1]][1:2563], pca$x[,pc[2]][1:2563], col=COLOR[SPP],pch=20,xlab="PCA2",ylab="PCA1")
-legend(110,100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
-#text(pca$x[2505:2559,pc[1]], pca$x[2505:2559,pc[2]],labels=rownames(pca$x)[2505:2559],cex=0.8,col=1)
+tiff("/Users/Pinedasans/Catalyst/Article/plotPCA.tiff", width = 6, height = 6, units = 'in', res = 300, compression = 'lzw')
+plot(pca$x[,pc[1]][1:2559], pca$x[,pc[2]][1:2559], col=COLOR[SPP],pch=20,xlab="PCA2",ylab="PCA1")
+legend(100,100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
+#text(pca$x[2505:2559,pc[1]], pca$x[2505:2559,pc[2]],labels=demographics$Id2,cex=0.5,col=1)
+dev.off()
+
+tiff("/Users/Pinedasans/Catalyst/Article/plotPCAEUR.tiff", width = 6, height = 6, units = 'in', res = 300, compression = 'lzw')
+plot(pca$x[,pc[1]][1:2559], pca$x[,pc[2]][1:2559], col=COLOR[SPP],pch=20,xlab="PCA2",ylab="PCA1",xlim=c(-50,-35),ylim = c(-75,-55))
+#legend(100,100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
+text(pca$x[2505:2559,pc[1]], pca$x[2505:2559,pc[2]],labels=demographics$Id2,cex=0.5,col=1,pos=1)
+dev.off()
+
+tiff("/Users/Pinedasans/Catalyst/Article/plotPCAFR.tiff", width = 6, height = 6, units = 'in', res = 300, compression = 'lzw')
+plot(pca$x[,pc[1]][1:2559], pca$x[,pc[2]][1:2559], col=COLOR[SPP],pch=20,xlab="PCA2",ylab="PCA1",xlim=c(80,150),ylim = c(-20,20))
+#legend(100,100, legend=levels(levels.SPP), col=COLOR,pch=20,cex=0.8)
+text(pca$x[2505:2559,pc[1]], pca$x[2505:2559,pc[2]],labels=demographics$Id2,cex=0.8,col=1,pos=4)
+dev.off()
+
 library("zoom")
 zm()
+
+
+pc <- c(1,2)
+PCA1<-pca$x[2505:2559,pc[1]]
+PCA2<-pca$x[2505:2559,pc[2]]
+PCA1<-PCA1[c(1:53,55,54,55)]
+PCA2<-PCA2[c(1:53,55,54,55)]
+non.list<-seq(1,56,2)
+x1<-PCA1[non.list]
+y1<-PCA2[non.list]
+x2<-PCA1[non.list+1]
+y2<-PCA1[non.list+1]
+Distance <- sqrt(((x2-x1)^2)+((y2-y1)^2))
+write.table(Distance,"/Users/Pinedasans/Catalyst/Results/Distance.PCA.1000G.txt")
 
 ####Plot the pca only with our individuals
 demographics$phenotype
