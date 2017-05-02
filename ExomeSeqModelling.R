@@ -118,40 +118,40 @@ layout.show(4)
 
 fill=brewer.pal(3,"Set1")
 
-tiff("/Users/Pinedasans/Catalyst/Article/Boxplot.tiff", width = 12, height = 6, units = 'in', res = 300, compression = 'lzw')
+tiff("/Users/Pinedasans/Catalyst/Article/Boxplot.tiff", width = 8, height = 4, units = 'in', res = 300, compression = 'lzw')
 boxplot(variant_mismatch~variant_list$phenotype,frame.plot = FALSE,col=fill,ylab="Variants Mismatched",
         ylim=c(40000,140000),cex=1.6)
 dev.off()
 
 num.AMR<-variant_mismatch[order(variant_list$phenotype)][1:14]
-tiff("/Users/Pinedasans/Catalyst/Article/plotAMR.tiff", width = 7, height = 7, units = 'in', res = 300, compression = 'lzw')
-plot(num.AMR[order(num.AMR,decreasing = T)],type="h", col=fill[1],ylim=c(40000,140000),ylab="Variants Mismatched",lty=1,lwd=10,xaxt="n",xlab="Nº pairs",
-     main="AMR (386,958 variants mismatched)",frame.plot = FALSE)
+tiff("/Users/Pinedasans/Catalyst/Article/plotAMR.tiff", width = 5, height = 5, units = 'in', res = 300, compression = 'lzw')
+plot(num.AMR[order(num.AMR,decreasing = T)],type="h", col=fill[1],ylim=c(40000,140000),ylab="Variants Mismatched",lty=1,lwd=10,xaxt="n",xlab="Nº pairs",xlim=c(0,15),
+     main="AMR (386,958 mismatched variants)",frame.plot = FALSE)
 axis(1,at= 1:14,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],las=2,cex.axis=0.9)
-text(num.AMR[order(num.AMR,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
-text(num.AMR[order(num.AMR,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
-text(num.AMR[order(num.AMR,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
+text(num.AMR[order(num.AMR,decreasing = T)]+4000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
+text(num.AMR[order(num.AMR,decreasing = T)]+8000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
+text(num.AMR[order(num.AMR,decreasing = T)]+12000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
 dev.off()
 
 
 num.CMR<-variant_mismatch[order(variant_list$phenotype)][15:21]
-tiff("/Users/Pinedasans/Catalyst/Article/plotCMR.tiff", width = 7, height = 7, units = 'in', res = 300, compression = 'lzw')
-plot(num.CMR[order(num.CMR,decreasing = T)],type="h", col=fill[2],ylim=c(40000,140000),ylab="Variants Mismatched",lty=1,lwd=10,xaxt="n",xlab="Nº pairs",
-     main="CMR (268,722 variants mismatched)",frame.plot = FALSE)
+tiff("/Users/Pinedasans/Catalyst/Article/plotCMR.tiff", width = 5, height = 5, units = 'in', res = 300, compression = 'lzw')
+plot(num.CMR[order(num.CMR,decreasing = T)],type="h", col=fill[2],ylim=c(40000,140000),ylab="Variants Mismatched",lty=1,lwd=10,xaxt="n",xlab="Nº pairs",xlim=c(0,8),
+     main="CMR (268,722 mismatched variants)",frame.plot = FALSE)
 axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],las=2,cex.axis=0.9)
-text(num.CMR[order(num.CMR,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
-text(num.CMR[order(num.CMR,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
-text(num.CMR[order(num.CMR,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
+text(num.CMR[order(num.CMR,decreasing = T)]+4000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
+text(num.CMR[order(num.CMR,decreasing = T)]+8000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
+text(num.CMR[order(num.CMR,decreasing = T)]+12000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
 dev.off()
 
 num.NoRej<-variant_mismatch[order(variant_list$phenotype)][22:28]
-tiff("/Users/Pinedasans/Catalyst/Article/plotNoRej.tiff", width = 7, height = 7, units = 'in', res = 300, compression = 'lzw')
-plot(num.NoRej[order(num.NoRej,decreasing = T)],type="h", col=fill[3],ylim=c(40000,140000),ylab="Variants Mismatched",lwd=10,lty=1,xaxt="n",xlab="Nº pairs",
-     main="NoRej (248,531 variants mismatched)",frame.plot = FALSE)
+tiff("/Users/Pinedasans/Catalyst/Article/plotNoRej.tiff", width = 5, height = 5, units = 'in', res = 300, compression = 'lzw')
+plot(num.NoRej[order(num.NoRej,decreasing = T)],type="h", col=fill[3],ylim=c(40000,140000),ylab="Variants Mismatched",lwd=10,lty=1,xaxt="n",xlab="Nº pairs",xlim=c(0,8),
+     main="NoRej (248,531 mismatched variants)",frame.plot = FALSE)
 axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],las=2,cex.axis=0.9)
-text(num.NoRej[order(num.NoRej,decreasing = T)]+3000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
-text(num.NoRej[order(num.NoRej,decreasing = T)]+6000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
-text(num.NoRej[order(num.NoRej,decreasing = T)]+9000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+4000,labels=demographics$RACE[y==1][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+8000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+12000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
 dev.off()
 
 summary(lm(variant_mismatch~demographics$phenotype[non.list]+distance[,1]))
@@ -185,11 +185,13 @@ for (b in 1:1000){
 endpoint<-ifelse(demographics$phenotype[non.list]=="No-REJ",0,
                  ifelse(demographics$phenotype[non.list]=="CMR",1,2))
 
-exome_variants_present_t<-t(exome_variants_present)
-exome_variants_diff<-apply(exome_variants_present_t,2,function(x) abs(diff(x))[non.list])
-exome_variants_diff2<-apply(exome_variants_diff,2,function(x) replace(x,x==2,1))
+##Preparing the data with the diff
+# exome_variants_present_t<-t(exome_variants_present)
+# exome_variants_diff<-apply(exome_variants_present_t,2,function(x) abs(diff(x))[non.list])
+# exome_variants_diff2<-apply(exome_variants_diff,2,function(x) replace(x,x==2,1))
+# save(exome_variants_diff2,demographics,variant_list,file="/Users/Pinedasans/Catalyst/Data/ExomeSeq_Diff_demo.Rdata")
 
-save(exome_variants_diff2,demographics,variant_list,file="/Users/Pinedasans/Data/Catalyst/ExomeSeq_Diff_demo.Rdata")
+load("/Users/Pinedasans/Catalyst/Data/ExomeSeq_Diff_demo.Rdata")
 
 ###Considering a fisher.test
 p.value<-rep(NA,ncol(exome_variants_diff2))
@@ -207,6 +209,33 @@ p.value<-p.value[,1]
 p.value.adj<-p.adjust(p.value,method = "BH") #There are no significant results after MT correction
 exome_variants_sign<-exome_variants_diff2[,which(p.value<0.001)] #123
 p.value.sign<-p.value[which(p.value<0.001)]
+
+#############################
+### Permutation Analysis ###
+############################
+###Considering a fisher.test
+p.value<-matrix(NA,100,ncol(exome_variants_diff2))
+for (b in 1:100){
+  print(b)
+  perm<-sample(demographics$phenotype[non.list])
+  for (i in 1:ncol(exome_variants_diff2)){
+    tab<-table(exome_variants_diff2[,i],perm)
+    if(dim(tab)[1]>1){
+      p.value[b,i]<-fisher.test(tab)$p.value
+    }
+  }
+}
+write.csv(p.value,"/Users/Pinedasans/Catalyst/Results/p_value_perm_fisher.csv")
+colnames(p.value)<-colnames(exome_variants_diff2)
+numVar<-NULL
+for (i in 1:100){
+  numVar[i]<-table(p.value[i,]<0.001)[2]
+}
+p.value.sign.perm<-p.value[,match(colnames(exome_variants_sign),colnames(p.value))]
+numSign<-NULL
+for (i in 1:ncol(p.value.sign.perm)){
+  numSign[i]<-table(p.value.sign.perm[,i]<0.05)[2]
+}
 
 library(MASS)
 #endpoint <- relevel(factor(endpoint), ref = "0")
@@ -235,7 +264,46 @@ for(i in 1:ncol(exome_variants_sign)){
 ###Annotate the variants
 id.joint<-match(colnames(exome_variants_sign),df_joint_qc$snp_id)
 df_joint_sign<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.value.sign,OR,p.value.OR)
-write.table(df_joint_sign,file="/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",sep="\t",row.names = F)
+
+###Count the variants in the donor and the variants in the recipient
+df_joint_sign[,16:71]
+
+donor_res<-rep(NA,ncol(exome_variants_sign))
+recipient_res<-rep(NA,ncol(exome_variants_sign))
+match_res<-rep(NA,ncol(exome_variants_sign))
+for (i in 1:ncol(exome_variants_sign)){
+  j=16
+  donor<-0
+  recipient<-0
+  match<-0
+  while(j<72){
+    print(j)
+    if(df_joint_sign[i,j]!="NA" & df_joint_sign[i,(j+1)]!="NA"){
+      if(as.numeric(df_joint_sign[i,j])-as.numeric(df_joint_sign[i,(j+1)])>0){
+        donor=donor+1
+        j=j+2
+      } else if(as.numeric(df_joint_sign[i,j])-as.numeric(df_joint_sign[i,(j+1)])<0){
+          recipient=recipient+1
+          j=j+2
+      } else{
+        match=match+1
+        j=j+2
+      }
+    } else {
+      j=j+2
+    }
+  }
+  donor_res[i]<-donor
+  recipient_res[i]<-recipient
+  match_res[i]<-match
+}
+
+write.table(cbind(df_joint_sign[,-c(16:71)],donor_res,recipient_res,match_res),file="/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",sep="\t",row.names = F)
+
+
+
+
+
 
 
 ########################
