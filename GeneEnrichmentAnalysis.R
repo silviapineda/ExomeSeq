@@ -27,6 +27,10 @@ resultsRF_assocRej<-resultsRF[which(resultsRF$OR>1.4),]
 resultFisher<-read.table("/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",header=T,sep="\t")
 resultFisher_assocRej<-resultFisher[which(resultFisher$OR>1),]
 
+riskAMR<-read.table("/Users/Pinedasans/Catalyst/Results/RiskAMR.txt",header=T,sep="\t")
+riskCMR<-read.table("/Users/Pinedasans/Catalyst/Results/RiskCMR.txt",header=T,sep="\t")
+riskNoRej<-read.table("/Users/Pinedasans/Catalyst/Results/ProtectionNoRej.txt",header=T,sep="\t")
+
 id.overlap<-match(resultFisher_assocRej$Gene.refGene,resultsRF_assocRej$Gene.refGene)
 resultFisher_assocRej[which(is.na(id.overlap)==T),]
 
@@ -36,7 +40,8 @@ gene.expr.each.kidney<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichmen
 gene.expr.high.kidney<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/gene.kidney.high.expr.txt")
 gene.kidney<-union(union(rownames(gene.expr.up.kidney),as.character(gene.expr.each.kidney[,1])),rownames(gene.expr.high.kidney)) #2967
 
-length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.kidney))) #13
+length(na.omit(match(riskAMR[,1],gene.kidney))) #13
+length(na.omit(match(riskCMR[,1],gene.kidney))) #3
 
 
 ##Vessels
@@ -45,7 +50,8 @@ gene.expr.each.vessels<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichme
 gene.expr.high.vessels<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/gene.vessel.high.expr.txt")
 gene.vessels<-union(union(rownames(gene.expr.up.vessels),as.character(gene.expr.each.vessels[,1])),rownames(gene.expr.high.vessels)) #3513
 
-length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.vessels))) #15
+length(na.omit(match(riskAMR[,1],gene.vessels))) #15
+length(na.omit(match(riskCMR[,1],gene.vessels))) #6
 
 
 ###Immuno
@@ -59,7 +65,8 @@ Dataset4<-read.csv("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/InnateDB_gene
 ListGene4<-na.omit(as.character(Dataset4$name))
 gene.immuno<-union(union(union(ListGene1,ListGene2),ListGene3),ListGene4) #8745
 
-length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.immuno))) #17
+length(na.omit(match(riskAMR[,1],gene.immuno))) #20
+length(na.omit(match(riskCMR[,1],gene.immuno))) #4
 
 
 ##Surface genes
@@ -79,23 +86,38 @@ ListGene3<-na.omit(as.character(Dataset3$SourceGeneName))
 
 gene.surface<-union(union(ListGene1,ListGene2),ListGene3)  #7341
 
-length(na.omit(match(resultFisher_assocRej$Gene.refGene,gene.surface))) #48
+length(na.omit(match(riskAMR[,1],gene.surface))) #48
+length(na.omit(match(riskCMR[,1],gene.surface))) #11
 
 
 ##Enrichment analysis #19725 total coding genes
-##The number of genes unique is 74
-counts = (matrix(data = c(13, 61, 2786, 16939), nrow = 2)) #p-value = 0.5
+##The number of genes unique AMR is 72
+
+counts = (matrix(data = c(13, 59, 2786, 16939), nrow = 2)) #p-value = 0.5
 chisq.test(counts)
 
-counts = (matrix(data = c(15, 59, 3291, 16434), nrow = 2)) #p-value = 0.5
+counts = (matrix(data = c(15, 57, 3291, 16434), nrow = 2)) #p-value = 0.5
 chisq.test(counts)
 
-counts = (matrix(data = c(17, 57, 8745, 10980), nrow = 2)) #p-value = 0.0003
+counts = (matrix(data = c(20, 52, 8745, 10980), nrow = 2)) #p-value = 0.0003
 chisq.test(counts)
 
-counts = (matrix(data = c(48,26, 7341, 12384), nrow = 2)) #p-value = 1.7 *10-6
+counts = (matrix(data = c(48,24, 7341, 12384), nrow = 2)) #p-value = 1.7 *10-6
 chisq.test(counts)
 
+##The number of genes unique CMR is 22
+
+counts = (matrix(data = c(3, 19, 2786, 16939), nrow = 2)) #p-value = 0.5
+chisq.test(counts)
+
+counts = (matrix(data = c(6, 16, 3291, 16434), nrow = 2)) #p-value = 0.5
+chisq.test(counts)
+
+counts = (matrix(data = c(4, 18, 8745, 10980), nrow = 2)) #p-value = 0.0003
+chisq.test(counts)
+
+counts = (matrix(data = c(11,11, 7341, 12384), nrow = 2)) #p-value = 1.7 *10-6
+chisq.test(counts)
 
 genes_GTEx<-read.table("/Users/Pinedasans/Catalyst/Data/GTEX/gencode.v19.annotation_coding_genes.txt",sep=";")
 genes_GTEx<-genes_GTEx[,c(1,2,3,4,6)]
