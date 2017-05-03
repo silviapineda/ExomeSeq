@@ -49,14 +49,6 @@ table(demographics$RACE[non.list],demographics$phenotype[non.list])
 table(demographics$REL[non.list],demographics$phenotype[non.list])
 
 
-####Functioanl variants
-id<-match(rownames(exome_variants_present),df_joint_qc$snp_id)
-df_joint_qc_diff<-df_joint_qc[id,]
-table(df_joint_qc_diff$ExonicFunc.refGene)
-counts = (matrix(data = c(19, 123, 59718, 474235), nrow = 2))
-chisq.test(counts) #p-value = 0.5
-
-df_joint_qc_diff_exonic<-df_joint_qc_diff[which(df_joint_qc_diff$ExonicFunc.refGene=="nonsynonymous SNV"),]
 
 ##Count number of variants per pair that are DIFFERENT
 variant_mismatch <- NULL
@@ -103,6 +95,14 @@ exome_variants_present_AMR <- exome_variants_qc[na.omit(id.present_AMR),]
 exome_variants_present_CMR <- exome_variants_qc[na.omit(id.present_CMR),]
 exome_variants_present_NoRej <- exome_variants_qc[na.omit(id.present_NoRej),]
 
+####Functioanl variants
+id<-match(rownames(exome_variants_present),df_joint_qc$snp_id)
+df_joint_qc_diff<-df_joint_qc[id,]
+table(df_joint_qc_diff$ExonicFunc.refGene)
+counts = (matrix(data = c(19, 123, 59718, 474235), nrow = 2))
+chisq.test(counts) #p-value = 0.5
+
+df_joint_qc_diff_exonic<-df_joint_qc_diff[which(df_joint_qc_diff$ExonicFunc.refGene=="nonsynonymous SNV"),]
 
 
 ###########################################################################################
@@ -210,6 +210,27 @@ p.value.adj<-p.adjust(p.value,method = "BH") #There are no significant results a
 exome_variants_sign<-exome_variants_diff2[,which(p.value<0.001)] #123
 p.value.sign<-p.value[which(p.value<0.001)]
 
+##Plotting manhattan plot
+library("qqman")
+id.man<-match(colnames(exome_variants_diff2),df_joint_qc$snp_id)
+data.manhattan<-cbind(df_joint_qc[na.omit(id.man),c(14,1,2)],p.value)
+colnames(data.manhattan)=c("SNP","CHR","BP","P")
+data.manhattan$CHR<-as.numeric(as.character(data.manhattan$CHR))
+data.manhattan.NoNan<-data.manhattan[which(is.na(data.manhattan$P)==F),]
+data.manhattan.order<-data.manhattan.NoNan[order(data.manhattan.NoNan$CHR,data.manhattan.NoNan$BP),]
+highlightSNPs <- data.manhattan.order[which(data.manhattan.order$P<=0.001),1]
+grep("1:26671084_G/T",data.manhattan.order$SNP)
+snpsOfInterest<-data.manhattan.order$SNP[11100:11800]
+tiff("/Users/Pinedasans/Catalyst/Article/Manhattan.tiff", width = 14, height = 8, units = 'in', res = 300, compression = 'lzw')
+manhattan(data.manhattan.NoNan, ylim = c(0, 6),highlight=snpsOfInterest,suggestiveline = FALSE,genomewideline = FALSE,
+          cex=0.8)
+dev.off()
+#abline(h = -log10(0.001), col = "blue")
+#data locus
+dataLocus<-cbind(df_joint_qc[na.omit(id.man),c(1,2,2,14)],p.value)
+colnames(dataLocus)=c("CHROM",	"BEGIN",	"END",	"MARKER_ID","PVALUE")
+write.table(dataLocus,"/Users/Pinedasans/Catalyst/Results/dataLocus.txt",row.names = F,sep="\t")
+
 #############################
 ### Permutation Analysis ###
 ############################
@@ -299,9 +320,6 @@ for (i in 1:ncol(exome_variants_sign)){
 }
 
 write.table(cbind(df_joint_sign[,-c(16:71)],donor_res,recipient_res,match_res),file="/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",sep="\t",row.names = F)
-
-
-
 
 
 
