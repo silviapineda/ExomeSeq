@@ -40,7 +40,8 @@ load("/Users/Pinedasans/Catalyst/Data/ExomeSeq/exome_variants_diff_imputed.Rdata
 
 ##Prepare data to run VSURF in the server
 exome_variants_diff_complete<-exome_variants_diff2[ , ! apply( exome_variants_diff2, 2 , function(x) any(is.na(x)) ) ] #450,981
-save(exome_variants_diff_complete,demographics,file="/Users/Pinedasans/Data/Catalyst/DataRF.Rdata")
+save(exome_variants_diff_complete,demographics,file="/Users/Pinedasans/Catalyst/Data/DataRF.Rdata")
+load("/Users/Pinedasans/Catalyst/Data/DataRF.Rdata")
 
 ####################
 ### 1a. Apply random forest to find the variants selected by VSURF using three categories (AMR, CMR, NoRej) with the imputed data
@@ -129,7 +130,7 @@ for (i in 1:28){
 result_roc <- multiclass.roc(endpoint, result_predicted)$auc
 
 exome_variants_rf_selected<-exome_variants_diff_complete[,fit$varselect.interp]
-rf_output_total <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_selected),proximity=TRUE, keep.forest=T,ntree=100)
+rf_output_total_discovery <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_selected),proximity=TRUE, keep.forest=T,ntree=100)
 
 ###To find the trees within random forest
 split_var<-list()
@@ -143,8 +144,8 @@ plot.getTree(rf_output_total, k=8, depth=4)
 ##plot MDS
 tiff("/Users/Pinedasans/Catalyst/Article/MDSplot_discovery.tiff", width = 6, height = 6, units = 'in', res = 300, compression = 'lzw')
 COLOR=brewer.pal(3,"Set1")
-MDSplot(rf_output_total, demographics$phenotype[non.list],palette = COLOR,main = "Discovery",cex=1.6)
-legend("bottomleft", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
+MDSplot(rf_output_total_discovery, demographics$phenotype[non.list],palette = COLOR,main = "Discovery",cex=1.6)
+legend("bottomright", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
 dev.off()
 
 ###Apply logistic regression to find only those that are risk 
@@ -194,12 +195,16 @@ callback = function(hc, mat){
   dend = reorder(as.dendrogram(hc), wts = sv)
   as.hclust(dend)
 }
+id.var<-match(colnames(exome_variants_rf_selected),df_joint_qc$snp_id)
+colnames(exome_variants_rf_selected)<-paste(df_joint_qc$Gene.refGene[id.var],df_joint_qc$snp138[id.var],sep=" - ")
+
 fill=brewer.pal(3,"Set1")
 ann_colors = list (phenotype = c(AMR = fill[1], CMR = fill[2], "No-REJ" = fill[3]),
                    related = c("Non related" = "yellow", related = "lightblue"))
-pheatmap(exome_variants_rf_selected ,cluster_rows = T,color = colorRampPalette(c("white", "red"))(50),cex=1.1,
-         annotation_row = annotation_row, clustering_callback = callback,annotation_colors = ann_colors,border_color=F)
-
+tiff("/Users/Pinedasans/Catalyst/Article/heatmap_geneNamesSNPnames.tiff",height = 8, width = 16,units = 'in', res = 300, compression = 'lzw')
+pheatmap(exome_variants_rf_selected ,cluster_rows = T,color = colorRampPalette(c("white", "grey52"))(50),cex=1.0,
+         annotation_row = annotation_row,clustering_callback = callback,annotation_colors = ann_colors,border_color=F)
+dev.off()
 
 ###plot the tree
 options(repos='http://cran.rstudio.org')
@@ -449,12 +454,55 @@ for (i in 1:28){
 result_roc <- multiclass.roc(endpoint, result_predicted)$auc
 
 exome_variants_rf_hla<-exome_variants_diff_hla[,fit$varselect.interp]
-rf_output_total <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_hla),proximity=TRUE, keep.forest=T,ntree=100)
-png("/Users/Pinedasans/Catalyst/Results/MDSplot_hla.png")
+rf_output_total_hla <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_hla),proximity=TRUE, keep.forest=T,ntree=100)
+tiff("/Users/Pinedasans/Catalyst/Article/MDSplot_HLA.tiff", width = 6, height =6, units = 'in', res = 300, compression = 'lzw')
 COLOR=brewer.pal(3,"Set1")
-MDSplot(rf_output_total, demographics$phenotype[non.list],palette = COLOR,main = "HLA-region")
-legend("topleft", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20)
+MDSplot(rf_output_total_hla, demographics$phenotype[non.list],palette = COLOR,main = "HLA-region",cex=1.6)
+legend("topleft", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
 dev.off()
+
+
+#####Plot Figure 5 for the paper
+tiff("/Users/Pinedasans/Catalyst/Article/Fig5.tiff", width = 10, height =8, units = 'in', res = 300, compression = 'lzw')
+par( mfrow = c( 2, 3 ) )
+COLOR=brewer.pal(3,"Set1")
+
+MDSplot(rf_output_total_discovery, demographics$phenotype[non.list],palette = COLOR,main = "Discovery: 65 variants (OOB = 0.03)",cex=1.6)
+legend("bottomright", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
+
+var_select<-NULL
+OOB<-NULL
+for (i in c(1,5)){
+  fit<-get(paste("fit",i,sep=""))
+  exome_variants_rf_selected_perm<-exome_variants_diff_complete[,fit$varselect.inter]
+  var_select[i]<-dim(exome_variants_rf_selected_perm)[2]
+  rf_output_total <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_selected_perm),proximity=TRUE, keep.forest=T,ntree=100)
+  OOB[i]<-rf_output_total$err.rate[100,1]
+  MDSplot(rf_output_total, demographics$phenotype[non.list],palette = COLOR,main = paste("Permutation",i,": ",var_select[i]," variants (OOB: ", round(OOB[i], digits=2) ,")",sep=""),cex=1.6)
+  legend("bottomleft", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
+}
+
+MDSplot(rf_output_total_hla, demographics$phenotype[non.list],palette = COLOR,main = "Discovery: 15 variants HLA-region (OOB = 0.35)",cex=1.6)
+legend("topleft", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
+
+var_select<-NULL
+OOB<-NULL
+for (i in c(2,9)){
+  fit<-get(paste("fit",i,sep=""))
+  exome_variants_rf_selected_perm<-exome_variants_diff_complete[,fit$varselect.inter]
+  var_select[i]<-dim(exome_variants_rf_selected_perm)[2]
+  rf_output_total <- randomForest(demographics$phenotype[non.list]~.,data=data.frame(exome_variants_rf_selected_perm),proximity=TRUE, keep.forest=T,ntree=100)
+  OOB[i]<-rf_output_total$err.rate[100,1]
+  MDSplot(rf_output_total, demographics$phenotype[non.list],palette = COLOR,main =  paste("Permutation",i,": ",var_select[i]," variants (OOB: ", round(OOB[i], digits=2) ,")",sep=""),cex=1.6)
+  legend("bottomleft", legend=levels(demographics$phenotype[non.list]),col=COLOR, pch = 20,pt.cex=1.6 ,cex=1.2)
+}
+dev.off()
+
+
+
+
+
+
 
 ########################################
 ### Association with Race mismatch  ####

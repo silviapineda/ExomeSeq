@@ -118,7 +118,7 @@ layout.show(4)
 
 fill=brewer.pal(3,"Set1")
 
-tiff("/Users/Pinedasans/Catalyst/Article/Boxplot.tiff", width = 8, height = 4, units = 'in', res = 300, compression = 'lzw')
+tiff("/Users/Pinedasans/Catalyst/Article/Boxplot.tiff", width = 6, height = 4, units = 'in', res = 300, compression = 'lzw')
 boxplot(variant_mismatch~variant_list$phenotype,frame.plot = FALSE,col=fill,ylab="Variants Mismatched",
         ylim=c(40000,140000),cex=1.6)
 dev.off()
@@ -222,14 +222,46 @@ highlightSNPs <- data.manhattan.order[which(data.manhattan.order$P<=0.001),1]
 grep("1:26671084_G/T",data.manhattan.order$SNP)
 snpsOfInterest<-data.manhattan.order$SNP[11100:11800]
 tiff("/Users/Pinedasans/Catalyst/Article/Manhattan.tiff", width = 14, height = 8, units = 'in', res = 300, compression = 'lzw')
-manhattan(data.manhattan.NoNan, ylim = c(0, 6),highlight=snpsOfInterest,suggestiveline = FALSE,genomewideline = FALSE,
-          cex=0.8)
+manhattan(data.manhattan.NoNan, ylim = c(0, 6),highlight=highlightSNPs,suggestiveline = FALSE,genomewideline = FALSE,
+          cex=1.2)
 dev.off()
 #abline(h = -log10(0.001), col = "blue")
 #data locus
 dataLocus<-cbind(df_joint_qc[na.omit(id.man),c(1,2,2,14)],p.value)
 colnames(dataLocus)=c("CHROM",	"BEGIN",	"END",	"MARKER_ID","PVALUE")
 write.table(dataLocus,"/Users/Pinedasans/Catalyst/Results/dataLocus.txt",row.names = F,sep="\t")
+
+####
+#make annotation factor
+ann<-rep(1, length(data.manhattan.NoNan$P))
+ann[with(data.manhattan.NoNan, CHR==1 & BP>= 227057885 & BP<227083806)]<-2
+ann[with(data.manhattan.NoNan, CHR==8 & BP>=113235157 & BP<114449328)]<-3
+ann[with(data.manhattan.NoNan, CHR==19 & BP>=2100988 & BP<2164464)]<-4
+ann[with(data.manhattan.NoNan, CHR==10 & BP>=12237964 & BP<12292588)]<-5
+ann[with(data.manhattan.NoNan, CHR==1 & BP>=26648350 & BP<26680621)]<-6
+ann[with(data.manhattan.NoNan, CHR==1 & BP>=26648350 & BP<26680621)]<-7
+ann[with(data.manhattan.NoNan, CHR==20 & BP>=36838890 & BP<36889174)]<-8
+ann[with(data.manhattan.NoNan, CHR==9 & BP>=130267618 & BP<130341268)]<-9
+ann[with(data.manhattan.NoNan, CHR==7 & BP>=100547257 & BP<100550424)]<-10
+ann[with(data.manhattan.NoNan, CHR==11 & BP>=4790209 & BP<4791168)]<-11
+ann[with(data.manhattan.NoNan, CHR==11 & BP>=124120423 & BP<124135763)]<-12
+ann[with(data.manhattan.NoNan, CHR==11 & BP>=124134723 & BP<124135763)]<-13
+
+ann<-factor(ann, levels=1:13, labels=c("","PSEN2","CSMD3","AP3D1","CDC123","AIM1L","CHRNA10","KIAA1755",
+                                      "FAM129B","MUC3A","OR51F1","OR8G1","OR8G5"))
+#draw plot with annotation
+manhattan.plot(data.manhattan.NoNan$CHR,data.manhattan.NoNan$BP, data.manhattan.NoNan$P,
+               annotate=list( ann, "PSEN2"=list(col=fill[1]),"CSMD3"=list(col=fill[1]),
+                              "AP3D1"=list(col=fill[1]),"CDC123"=list(col=fill[1]),
+                              "AIM1L"=list(col=fill[2]),"CHRNA10"=list(col=fill[2]),
+                              "KIAA1755"=list(col=fill[2]),"FAM129B"=list(col=fill[1]),
+                              "MUC3A"=list(col=fill[1]),"OR51F1"=list(col=fill[1]),
+                              "OR8G1"=list(col=fill[1]),"OR8G5"=list(col=fill[1])))
+
+png("mymanhattan.png", width=950, height=500)
+print(manhattan.plot())
+dev.off()
+
 
 #############################
 ### Permutation Analysis ###
@@ -286,6 +318,30 @@ for(i in 1:ncol(exome_variants_sign)){
 id.joint<-match(colnames(exome_variants_sign),df_joint_qc$snp_id)
 df_joint_sign<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej,p.value.sign,OR,p.value.OR)
 
+###All differences to plot in the circos plot
+Diff.AMR<-NULL
+Diff.CMR<-NULL
+Diff.NoRej<-NULL
+for(i in 1:ncol(exome_variants_diff2)){
+  Diff.AMR[i]<-table(exome_variants_diff2[which(demographics$phenotype[non.list]=="AMR"),i]!=0)['TRUE']
+  Diff.CMR[i]<-table(exome_variants_diff2[which(demographics$phenotype[non.list]=="CMR"),i]!=0)['TRUE']
+  Diff.NoRej[i]<-table(exome_variants_diff2[which(demographics$phenotype[non.list]=="No-REJ"),i]!=0)['TRUE']
+}
+###Annotate the variants
+id.joint<-match(colnames(exome_variants_diff2),df_joint_qc$snp_id)
+df_joint_all<-cbind(df_joint_qc[id.joint,],Diff.AMR,Diff.CMR,Diff.NoRej)
+df_joint_all<-df_joint_all[,c(1,2,3,72,73,74)]
+
+####To plot in the circos plot
+for (i in 1:22){
+  df_joint_all$Chr<-replace(as.character(df_joint_all$Chr),as.character(df_joint_all$Chr)==i,paste("hs",i,sep=""))
+}
+df_joint_all$Diff.AMR<-replace(df_joint_all$Diff.AMR,is.na(df_joint_all$Diff.AMR)==T,0)
+df_joint_all$Diff.CMR<-replace(df_joint_all$Diff.CMR,is.na(df_joint_all$Diff.CMR)==T,0)
+df_joint_all$Diff.NoRej<-replace(df_joint_all$Diff.NoRej,is.na(df_joint_all$Diff.NoRej)==T,0)
+write.table(df_joint_all,"/Users/Pinedasans/programs/circos-0.69-5/catalyst/variants.hist.all.txt")
+
+
 ###Count the variants in the donor and the variants in the recipient
 df_joint_sign[,16:71]
 
@@ -335,9 +391,11 @@ id.hla.DPB1<-grep("^HLA-DPB1$",df_joint_qc$Gene.refGene)
 id.hla.DQB1<-grep("^HLA-DQB1$",df_joint_qc$Gene.refGene)
 id.hla.DRB1<-grep("^HLA-DRB1$",df_joint_qc$Gene.refGene)
 id.hla.DRB5<-grep("^HLA-DRB5$",df_joint_qc$Gene.refGene)
+id.hla.DQA1<-grep("^HLA-DQA1$",df_joint_qc$Gene.refGene)
 
 id.HLA<-grep("HLA",df_joint_qc$Gene.refGene)
 
+####Analysis 1: Association analysis for each SNP in HLA region and clinical endpoint
 
 FisherTestSNV<- function (gene.id,DATA){
 ###Considering a fisher.test
@@ -355,6 +413,7 @@ FisherTestSNV<- function (gene.id,DATA){
   return(p.value.hla)
 }
 
+
 p.value.HLA<-FisherTestSNV(id.HLA,df_joint_qc)
 p.value.HLA.A<-FisherTestSNV(id.hla.A,df_joint_qc)
 p.value.HLA.B<-FisherTestSNV(id.hla.B,df_joint_qc)
@@ -363,6 +422,7 @@ p.value.HLA.DPB1<-FisherTestSNV(id.hla.DPB1,df_joint_qc)
 p.value.HLA.DQB1<-FisherTestSNV(id.hla.DQB1,df_joint_qc)
 p.value.HLA.DRB1<-FisherTestSNV(id.hla.DRB1,df_joint_qc)
 p.value.HLA.DRB5<-FisherTestSNV(id.hla.DRB5,df_joint_qc)
+p.value.HLA.DQA1<-FisherTestSNV(id.hla.DQA1,df_joint_qc)
 
 exome_variants_HLA<-exome_variants_diff2[,id.HLA]
 
