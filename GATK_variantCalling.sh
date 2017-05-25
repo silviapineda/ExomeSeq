@@ -80,4 +80,15 @@ java -jar GenomeAnalysisTK.jar -T SelectVariants -R /home/pinedasans/ExomeSeq/BA
 export PATH=${PATH}:/home/pinedasans/programs/vcftools_0.1.13/bin/
 vcftools --vcf /home/pinedasans/ExomeSeq/VCF/joint.output.snp.indel.recal.filtered.biallelic.vcf --TsTv-summary
 
+####Calculate the depthOfCoverage
+FILES=/home/pinedasans/ExomeSeq/BAM/*.bam
+
+variantParameters=
+for f in $FILES
+do
+    echo $f
+    variantParameters = "$variantParameters -I $f"
+done
+
+java -jar GenomeAnalysisTK.jar -T DepthOfCoverage $variantParameters -o /home/pinedasans/ExomeSeq/BAM/coverage.txt  -R /home/pinedasans/ExomeSeq/BAM/GRCh37.fa -geneList /home/pinedasans/ExomeSeq/BAM/hg19.refSeq.GeneList.txt -L /home/pinedasans/ExomeSeq/BAM/SeqCap_EZ_Exome_v3_capture_nochr.bed
 
