@@ -103,7 +103,11 @@ counts = (matrix(data = c(19, 123, 59718, 474235), nrow = 2))
 chisq.test(counts) #p-value = 0.5
 
 df_joint_qc_diff_exonic<-df_joint_qc_diff[which(df_joint_qc_diff$ExonicFunc.refGene=="nonsynonymous SNV"),]
-
+##Variant mismacth for the nonsynonymoys variants
+variant_mismatch <- NULL
+for (i in 1:28) {
+  variant_mismatch[i]<-length(which(get(paste("df_joint_pair",(i),sep=""))[,8]=="nonsynonymous SNV"))
+}
 
 ###########################################################################################
 #### Obtain the main plot considering all the differences by pair ordered by endpoint  ####
@@ -111,11 +115,6 @@ df_joint_qc_diff_exonic<-df_joint_qc_diff[which(df_joint_qc_diff$ExonicFunc.refG
 y <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
 
 non.list<- seq(1,56,2) ##Donors
-
-m <- rbind(c(2,3,4),c(1,1,1))
-layout(m)
-layout.show(4)
-
 fill=brewer.pal(3,"Set1")
 
 tiff("/Users/Pinedasans/Catalyst/Article/Boxplot.tiff", width = 6, height = 4, units = 'in', res = 300, compression = 'lzw')
@@ -153,6 +152,46 @@ text(num.NoRej[order(num.NoRej,decreasing = T)]+4000,labels=demographics$RACE[y=
 text(num.NoRej[order(num.NoRej,decreasing = T)]+8000,labels=demographics$RACE[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
 text(num.NoRej[order(num.NoRej,decreasing = T)]+12000,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
 dev.off()
+
+####Same plot for nonsynonymous variants
+
+tiff("/Users/Pinedasans/Catalyst/Article/BoxplotNonsynonymous.tiff", width = 6, height = 4, units = 'in', res = 300, compression = 'lzw')
+boxplot(variant_mismatch~variant_list$phenotype,frame.plot = FALSE,col=fill,ylab="Variants Mismatched",
+        ylim=c(4000,14000),cex=1.6)
+dev.off()
+
+num.AMR<-variant_mismatch[order(variant_list$phenotype)][1:14]
+tiff("/Users/Pinedasans/Catalyst/Article/plotAMRNonsyn.tiff", width = 5, height = 5, units = 'in', res = 300, compression = 'lzw')
+plot(num.AMR[order(num.AMR,decreasing = T)],type="h", col=fill[1],ylim=c(4000,14000),ylab="Variants Mismatched",lty=1,lwd=10,xaxt="n",xlab="Nº pairs",xlim=c(0,15),
+     main="AMR (148,711 mismatched variants)",frame.plot = FALSE)
+axis(1,at= 1:14,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],las=2,cex.axis=0.9)
+text(num.AMR[order(num.AMR,decreasing = T)]+300,labels=demographics$RACE[y==1][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
+text(num.AMR[order(num.AMR,decreasing = T)]+600,labels=demographics$RACE[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
+text(num.AMR[order(num.AMR,decreasing = T)]+900,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][1:14][order(num.AMR,decreasing = T)],cex=0.8)
+dev.off()
+
+
+num.CMR<-variant_mismatch[order(variant_list$phenotype)][15:21]
+tiff("/Users/Pinedasans/Catalyst/Article/plotCMRNonsyn.tiff", width = 5, height = 5, units = 'in', res = 300, compression = 'lzw')
+plot(num.CMR[order(num.CMR,decreasing = T)],type="h", col=fill[2],ylim=c(4000,14000),ylab="Variants Mismatched",lty=1,lwd=10,xaxt="n",xlab="Nº pairs",xlim=c(0,8),
+     main="CMR (66,212 mismatched variants)",frame.plot = FALSE)
+axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],las=2,cex.axis=0.9)
+text(num.CMR[order(num.CMR,decreasing = T)]+300,labels=demographics$RACE[y==1][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
+text(num.CMR[order(num.CMR,decreasing = T)]+600,labels=demographics$RACE[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
+text(num.CMR[order(num.CMR,decreasing = T)]+900,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][15:21][order(num.CMR,decreasing = T)],cex=0.8)
+dev.off()
+
+num.NoRej<-variant_mismatch[order(variant_list$phenotype)][22:28]
+tiff("/Users/Pinedasans/Catalyst/Article/plotNoRejNonsyn.tiff", width = 5, height = 5, units = 'in', res = 300, compression = 'lzw')
+plot(num.NoRej[order(num.NoRej,decreasing = T)],type="h", col=fill[3],ylim=c(4000,14000),ylab="Variants Mismatched",lwd=10,lty=1,xaxt="n",xlab="Nº pairs",xlim=c(0,8),
+     main="NoRej (58,491 mismatched variants)",frame.plot = FALSE)
+axis(1,at= 1:7,label= paste("pair",rownames(variant_list),sep="")[order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],las=2,cex.axis=0.9)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+300,labels=demographics$RACE[y==1][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+600,labels=demographics$RACE[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
+text(num.NoRej[order(num.NoRej,decreasing = T)]+900,labels=demographics$RELplot[y==0][order(variant_list$phenotype)][22:28][order(num.NoRej,decreasing = T)],cex=0.8)
+dev.off()
+
+
 
 summary(lm(variant_mismatch~demographics$phenotype[non.list]+distance[,1]))
 
