@@ -25,7 +25,8 @@ resultsRF<-read.table("/Users/Pinedasans/Catalyst/Results/ResultsEndpointRF.txt"
 resultsRF_assocRej<-resultsRF[which(resultsRF$OR>1.4),]
 
 resultFisher<-read.table("/Users/Pinedasans/Catalyst/Results/ResultsEndpointFisherTestSign.txt",header=T,sep="\t")
-resultFisher_assocRej<-resultFisher[which(resultFisher$OR>1),]
+#resultFisher_assocRej<-resultFisher[which(resultFisher$OR>1),]
+
 
 riskAMR<-read.table("/Users/Pinedasans/Catalyst/Results/RiskAMR.txt",header=T,sep="\t")
 riskCMR<-read.table("/Users/Pinedasans/Catalyst/Results/RiskCMR.txt",header=T,sep="\t")
@@ -43,7 +44,9 @@ gene.kidney<-union(union(rownames(gene.expr.up.kidney),as.character(gene.expr.ea
 length(na.omit(match(riskAMR[,1],gene.kidney))) #13
 length(na.omit(match(riskCMR[,1],gene.kidney))) #3
 
-
+id.kidney<-match(resultFisher$Gene.refGene,gene.kidney)
+resultFisher$kidney<-gene.kidney[id.kidney]
+  
 ##Vessels
 gene.expr.up.vessels<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/results.sign.upregulated.vessels.txt")
 gene.expr.each.vessels<-read.table("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/genes.vessels.each.txt")
@@ -52,6 +55,9 @@ gene.vessels<-union(union(rownames(gene.expr.up.vessels),as.character(gene.expr.
 
 length(na.omit(match(riskAMR[,1],gene.vessels))) #15
 length(na.omit(match(riskCMR[,1],gene.vessels))) #6
+
+id.vessels<-match(resultFisher$Gene.refGene,gene.vessels)
+resultFisher$vessels<-gene.vessels[id.vessels]
 
 
 ###Immuno
@@ -68,6 +74,8 @@ gene.immuno<-union(union(union(ListGene1,ListGene2),ListGene3),ListGene4) #8745
 length(na.omit(match(riskAMR[,1],gene.immuno))) #20
 length(na.omit(match(riskCMR[,1],gene.immuno))) #4
 
+id.immuno<-match(resultFisher$Gene.refGene,gene.immuno)
+resultFisher$immuno<-gene.immuno[id.immuno]
 
 ##Surface genes
 Dataset1<-read.csv("/Users/Pinedasans/Catalyst/Data/GeneEnrichment/peptideatlas.csv",header=T)
@@ -89,6 +97,10 @@ gene.surface<-union(union(ListGene1,ListGene2),ListGene3)  #7341
 length(na.omit(match(riskAMR[,1],gene.surface))) #48
 length(na.omit(match(riskCMR[,1],gene.surface))) #11
 
+id.surface<-match(resultFisher$Gene.refGene,gene.surface)
+resultFisher$surface<-gene.surface[id.surface]
+
+write.table(resultFisher,"/Users/Pinedasans/Catalyst/Results/ResultFisherGeneEnrichment.txt",row.names = F)
 
 ##Enrichment analysis #19725 total coding genes
 ##The number of genes unique AMR is 72
@@ -201,54 +213,51 @@ counts = (matrix(data = c(2,12, 3845, 15880), nrow = 2)) #p-value=0.8
 chisq.test(counts)
 
 
-
-
-
-
-
-###Within each list - genes
-##List Endpoint
+############
+###VennDiagram with the list of genes
+############
+resultFisher<-read.table("/Users/Pinedasans/Catalyst/Results/ResultFisherGeneEnrichment.txt",header = T)
 library("VennDiagram")
-area1=length(which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES"))
-area2=length(which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES"))
-area3=length(which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES"))
-area4=length(which(annotated.variants.assoc.endpoint.AMR$Surface=="YES"))
-n12=length(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                     annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")]))
-n13=length(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                     annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")]))
-n14=length(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                     annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
-n23=length(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")],
-                     annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")]))
-n24=length(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")],
-                     annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
-n34=length(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")],
-                     annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
-n123=length(intersect(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                                annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")]),
-                      annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")]))
-n124=length(intersect(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                                annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")]),
-                      annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
-n134=length(intersect(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                                annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")]),
-                      annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
-n234=length(intersect(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")],
-                                annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")]),
-                      annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
-n1234=length(intersect(intersect(intersect(annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Kidney=="YES")],
-                                           annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Vessels=="YES")]),
-                                 annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Immuno=="YES")]),
-                       annotated.variants.assoc.endpoint.AMR$Gene.refGene[which(annotated.variants.assoc.endpoint.AMR$Surface=="YES")]))
+area1=table(is.na(resultFisher$kidney))[1]
+area2=table(is.na(resultFisher$vessels))[1]
+area3=table(is.na(resultFisher$immuno))[1]
+area4=table(is.na(resultFisher$surface))[1]
+n12=length(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                     resultFisher$vessels[which(is.na(resultFisher$vessels)==F)]))
+n13=length(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                     resultFisher$immuno[which(is.na(resultFisher$immuno)==F)]))
+n14=length(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                     resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
+n23=length(intersect(resultFisher$vessels[which(is.na(resultFisher$vessels)==F)],
+                     resultFisher$immuno[which(is.na(resultFisher$immuno)==F)]))
+n24=length(intersect(resultFisher$vessels[which(is.na(resultFisher$vessels)==F)],
+                     resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
+n34=length(intersect(resultFisher$immuno[which(is.na(resultFisher$immuno)==F)],
+                     resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
+n123=length(intersect(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                                resultFisher$vessels[which(is.na(resultFisher$vessels)==F)]),
+                      resultFisher$immuno[which(is.na(resultFisher$immuno)==F)]))
+n124=length(intersect(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                                resultFisher$vessels[which(is.na(resultFisher$vessels)==F)]),
+                      resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
+n134=length(intersect(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                                resultFisher$immuno[which(is.na(resultFisher$immuno)==F)]),
+                      resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
+n234=length(intersect(intersect(resultFisher$vessels[which(is.na(resultFisher$vessels)==F)],
+                                resultFisher$immuno[which(is.na(resultFisher$immuno)==F)]),
+                      resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
+n1234=length(intersect(intersect(intersect(resultFisher$kidney[which(is.na(resultFisher$kidney)==F)],
+                                           resultFisher$vessels[which(is.na(resultFisher$vessels)==F)]),
+                                 resultFisher$immuno[which(is.na(resultFisher$immuno)==F)]),
+                       resultFisher$surface[which(is.na(resultFisher$surface)==F)]))
 
-tiff("/Users/Pinedasans/Documents/Catalyst/Results_V3/VennDiagramEndpointAMR.tiff",width=95,height=95,units="mm",res=300,compression=c("lzw"))
+tiff("/Users/Pinedasans/Catalyst/Article/VennDiagramGeneEnrichment.tiff",width=120,height=120,units="mm",res=300,compression=c("lzw"))
 
 draw.quad.venn(area1, area2, area3, area4, n12, n13, n14, n23, n24,
                n34, n123, n124, n134, n234, n1234,euler.d=F,scaled=F,
-               category = c("Kidney (23)","Blood Vessels (33)","Immune (49)","Surface (25)" ),
-               lty = "blank", fill=rainbow(4), alpha = rep(0.5, 4), cex = 0.7,lwd = rep(1, 4),
-               cat.cex=rep(0.5,4))
+               category = c("Kidney (16)","Blood Vessels (21)","Immune (21)","Surface (60)" ),
+               lty = "blank", fill=rainbow(4), alpha = rep(0.5, 4), cex = 0.6,lwd = rep(1, 4),
+               cat.cex=rep(0.6,4))
 
 dev.off()
 
