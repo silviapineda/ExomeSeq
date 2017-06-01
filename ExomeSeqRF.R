@@ -396,8 +396,7 @@ pheatmap(exome_variants_rf_selected_pre,cluster_rows = T,color = colorRampPalett
 load("/Users/Pinedasans/Catalyst/Results/ResultsRF_permutation.Rdata")
 p.value<-read.table(file="/Users/Pinedasans/Catalyst/Results/p.value.endpoints.txt")
 p.value<-p.value[,1]
-exome_variants_sign<-exome_variants_diff2[,which(p.value<0.05)] #8,182
-exome_variants_diff_complete<-exome_variants_sign[ , ! apply( exome_variants_sign, 2 , function(x) any(is.na(x)) ) ] #7,682
+exome_variants_diff_complete<-exome_variants_diff2[ , ! apply( exome_variants_diff2, 2 , function(x) any(is.na(x)) ) ] 
 
 var_select<-NULL
 OOB<-NULL
