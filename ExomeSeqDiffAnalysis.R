@@ -22,7 +22,7 @@ library("gridExtra")
 library("cowplot")
 
 #Work Directory
-setwd("/Users/Pinedasans/Data/Catalyst/ExomeSeq/VCF/")
+setwd("/Users/Pinedasans/Catalyst/Data/ExomeSeq/")
 
 ###Reading the Total genotypes data frame
 load("ExomeSeqVCF_SNPs.Rdata")
