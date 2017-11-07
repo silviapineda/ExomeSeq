@@ -249,6 +249,18 @@ p.value.adj<-p.adjust(p.value,method = "BH") #There are no significant results a
 exome_variants_sign<-exome_variants_diff2[,which(p.value<0.001)] #123
 p.value.sign<-p.value[which(p.value<0.001)]
 
+##Checking they are not related with race mismatch or relatedness
+p.value_rel<-rep(NA,ncol(exome_variants_sign))
+for (i in 1:ncol(exome_variants_sign)){
+  print(i)
+    tab<-table(exome_variants_sign[,i],demographics$REL2[non.list])
+  if(dim(tab)[1]>1){
+    p.value_rel[i]<-fisher.test(tab)$p.value
+  }
+}
+
+
+
 ##Plotting manhattan plot
 library("qqman")
 id.man<-match(colnames(exome_variants_diff2),df_joint_qc$snp_id)
